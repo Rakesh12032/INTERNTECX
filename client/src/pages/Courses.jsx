@@ -1,9 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { Filter } from "lucide-react";
+import { Filter, PlayCircle } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import api from "../utils/api";
 
-const categories = ["All", "Web Development", "Programming", "AI/ML", "Data Science", "Design", "Cloud"];
+const categories = [
+  "All",
+  "Web Development",
+  "Programming",
+  "AI/ML",
+  "Data Science",
+  "Design",
+  "Cloud",
+  "Security",
+  "Mobile",
+  "Database",
+  "DevOps",
+  "Marketing"
+];
 
 export default function Courses() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -46,10 +59,13 @@ export default function Courses() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-8 flex items-center justify-between gap-6">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.28em] text-blue">Course Catalog</p>
           <h1 className="mt-2 text-4xl font-bold">Build job-ready tech skills</h1>
+          <p className="mt-3 max-w-2xl text-slate-600 dark:text-slate-400">
+            Explore curated learning paths with syllabus, mentor info, and embedded public videos.
+          </p>
         </div>
         <div className="hidden items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm dark:border-slate-800 md:flex">
           <Filter className="h-4 w-4" />
@@ -60,11 +76,24 @@ export default function Courses() {
       <div className="rounded-3xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
         <div className="flex flex-wrap gap-3">
           {categories.map((category) => (
-            <button key={category} type="button" onClick={() => updateFilter("category", category)} className={`rounded-full px-4 py-2 text-sm font-medium transition ${selectedCategory === category ? "bg-blue text-white" : "border border-slate-200 text-slate-600 hover:border-blue hover:text-blue dark:border-slate-800 dark:text-slate-300"}`}>
+            <button
+              key={category}
+              type="button"
+              onClick={() => updateFilter("category", category)}
+              className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                selectedCategory === category
+                  ? "bg-blue text-white"
+                  : "border border-slate-200 text-slate-600 hover:border-blue hover:text-blue dark:border-slate-800 dark:text-slate-300"
+              }`}
+            >
               {category}
             </button>
           ))}
-          <select value={selectedLevel} onChange={(event) => updateFilter("level", event.target.value)} className="rounded-full border border-slate-200 px-4 py-2 text-sm outline-none dark:border-slate-800 dark:bg-slate-950">
+          <select
+            value={selectedLevel}
+            onChange={(event) => updateFilter("level", event.target.value)}
+            className="rounded-full border border-slate-200 px-4 py-2 text-sm outline-none dark:border-slate-800 dark:bg-slate-950"
+          >
             <option value="">All Levels</option>
             <option value="Beginner">Beginner</option>
             <option value="Intermediate">Intermediate</option>
@@ -75,18 +104,32 @@ export default function Courses() {
       <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {loading
           ? Array.from({ length: 6 }).map((_, index) => (
-              <div key={index} className="h-72 animate-pulse rounded-3xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900" />
+              <div
+                key={index}
+                className="h-80 animate-pulse rounded-3xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
+              />
             ))
           : courses.map((course) => (
-              <Link key={course.id} to={`/courses/${course.slug || course.id}`} className="rounded-3xl border border-slate-200 bg-white p-6 transition hover:-translate-y-1 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900">
+              <Link
+                key={course.id}
+                to={`/courses/${course.slug || course.id}`}
+                className="rounded-3xl border border-slate-200 bg-white p-6 transition hover:-translate-y-1 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900"
+              >
                 <div className="rounded-2xl bg-gradient-to-br from-blue via-cyan to-navy p-6 text-white">
                   <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">{course.category}</span>
-                  <h3 className="mt-10 text-2xl font-bold">{course.title}</h3>
+                  <h3 className="mt-8 text-2xl font-bold">{course.title}</h3>
+                </div>
+                <p className="mt-4 line-clamp-3 text-sm leading-7 text-slate-600 dark:text-slate-400">
+                  {course.overview}
+                </p>
+                <div className="mt-4 flex items-center gap-2 text-sm text-blue">
+                  <PlayCircle className="h-4 w-4" />
+                  Public video lessons included
                 </div>
                 <div className="mt-4 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
                   <span>{course.duration}</span>
                   <span>{course.level}</span>
-                  <span>{course.price ? `₹${course.price}` : "Free"}</span>
+                  <span>{course.price ? `Rs. ${course.price}` : "Free"}</span>
                 </div>
               </Link>
             ))}
@@ -100,7 +143,16 @@ export default function Courses() {
 
       <div className="mt-10 flex justify-center gap-3">
         {Array.from({ length: pagination.totalPages || 1 }).map((_, index) => (
-          <button key={index} type="button" onClick={() => updateFilter("page", String(index + 1))} className={`h-11 w-11 rounded-full text-sm font-semibold ${pagination.page === index + 1 ? "bg-blue text-white" : "border border-slate-200 text-slate-600 dark:border-slate-800 dark:text-slate-300"}`}>
+          <button
+            key={index}
+            type="button"
+            onClick={() => updateFilter("page", String(index + 1))}
+            className={`h-11 w-11 rounded-full text-sm font-semibold ${
+              pagination.page === index + 1
+                ? "bg-blue text-white"
+                : "border border-slate-200 text-slate-600 dark:border-slate-800 dark:text-slate-300"
+            }`}
+          >
             {index + 1}
           </button>
         ))}

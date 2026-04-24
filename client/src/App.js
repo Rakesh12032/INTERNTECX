@@ -23,6 +23,7 @@ import NotFound from "./pages/NotFound";
 import Verify from "./pages/Verify";
 import Ambassador from "./pages/Ambassador";
 import QuizAssessment from "./pages/QuizAssessment";
+import QuizCenter from "./pages/QuizCenter";
 import Admin from "./pages/Admin";
 import CollegeVerify from "./pages/CollegeVerify";
 import CompanyPortal from "./pages/CompanyPortal";
@@ -75,17 +76,6 @@ function DashboardLayout() {
   );
 }
 
-function SimpleShell({ title, description }) {
-  return (
-    <div className="mx-auto max-w-5xl px-4 py-16">
-      <div className="rounded-[32px] border border-slate-200 bg-white p-10 dark:border-slate-800 dark:bg-slate-900">
-        <h1 className="text-4xl font-bold">{title}</h1>
-        <p className="mt-4 max-w-2xl text-slate-600 dark:text-slate-400">{description}</p>
-      </div>
-    </div>
-  );
-}
-
 export default function App() {
   return (
     <ThemeProvider>
@@ -105,9 +95,9 @@ export default function App() {
               <Route path="/verify" element={<Verify />} />
               <Route path="/college-verify" element={<CollegeVerify />} />
               <Route path="/company-login" element={<CompanyPortal />} />
-              <Route path="/quiz" element={<SimpleShell title="Quiz Center" description="Course quiz instructions and launch flow will appear here." />} />
 
               <Route element={<ProtectedRoute />}>
+                <Route path="/quiz" element={<QuizCenter />} />
                 <Route path="/learn/:courseId" element={<CourseLearning />} />
                 <Route path="/quiz/:courseId" element={<QuizAssessment />} />
                 <Route path="/dashboard" element={<DashboardLayout />}>

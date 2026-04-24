@@ -76,7 +76,7 @@ function sanitizeDoc(document) {
 const db = {
   data: structuredClone(defaultData),
   getMongoUri() {
-    const rawUri = process.env.MONGO_URI?.trim();
+    const rawUri = process.env.MONGO_URI?.trim() || process.env.MONGODB_URI?.trim();
     return buildSafeMongoUri(rawUri);
   },
   async connect() {
@@ -91,7 +91,7 @@ const db = {
 
     const mongoUri = this.getMongoUri();
     if (!mongoUri) {
-      throw new Error("MONGO_URI environment variable is required");
+      throw new Error("MONGO_URI or MONGODB_URI environment variable is required");
     }
 
     const connectionLabel = mongoUri.replace(/\/\/([^:]+):([^@]+)@/, "//$1:***@");

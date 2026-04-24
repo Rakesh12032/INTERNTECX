@@ -48,12 +48,16 @@ export const upload = multer({
 
 const app = express();
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
-const allowedOrigins = new Set([
-  CLIENT_URL,
-  "https://interntecx.vercel.app",
-  "http://localhost:3000",
-  "http://127.0.0.1:3000"
-]);
+const allowedOrigins = new Set(
+  [
+    CLIENT_URL,
+    process.env.CLIENT_URL_2,
+    process.env.CLIENT_URL_3,
+    "https://interntecx.vercel.app",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000"
+  ].filter(Boolean)
+);
 
 app.use(
   cors({

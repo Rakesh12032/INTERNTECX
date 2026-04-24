@@ -4,6 +4,8 @@ import { jsPDF } from "jspdf";
 import api from "../utils/api";
 import { useAuth } from "../context/AuthContext";
 
+const HISTORY_KEY = "interntech_college_verification_history";
+
 function exportBulkCsv(rows) {
   const lines = [
     ["Cert ID", "Student", "Course", "Status"].join(","),
@@ -43,12 +45,30 @@ export default function CollegeVerify() {
   const [result, setResult] = useState(null);
   const [bulkIds, setBulkIds] = useState("");
   const [bulkResults, setBulkResults] = useState([]);
+  const [history, setHistory] = useState([]);
 
   useEffect(() => {
     if (isCollege?.() && user) {
       setCollegeUser(user);
     }
   }, [isCollege, user]);
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+      setHistory(Array.isArray(stored) ? stored : []);
+    } catch (_error) {
+      setHistory([]);
+    }
+  }, []);
+
+  const saveHistory = (entries) => {
+    setHistory((previous) => {
+      const next = [...entries, ...previous].slice(0, 20);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
 
   const loginCollege = async () => {
     try {
@@ -68,8 +88,22 @@ export default function CollegeVerify() {
     try {
       const response = await api.get(`/certificates/verify/${certId}`);
       setResult(response.data);
+      saveHistory([{
+        certId,
+        student: response.data.data?.studentName || "-",
+        course: response.data.data?.courseName || "-",
+        status: response.data.valid ? "Verified" : "Invalid",
+        checkedAt: new Date().toISOString()
+      }]);
     } catch (error) {
       setResult(error.response?.data || { valid: false });
+      saveHistory([{
+        certId,
+        student: "-",
+        course: "-",
+        status: "Invalid",
+        checkedAt: new Date().toISOString()
+      }]);
     }
   };
 
@@ -109,6 +143,7 @@ export default function CollegeVerify() {
       );
 
       setBulkResults(responses);
+      saveHistory(responses.map((item) => ({ ...item, checkedAt: new Date().toISOString() })));
       toast.success("Bulk verification complete");
     } catch (_error) {
       toast.error("Bulk verification failed");
@@ -149,6 +184,18 @@ export default function CollegeVerify() {
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-16">
       <div className="rounded-[36px] border border-slate-200 bg-white p-8 dark:border-slate-800 dark:bg-slate-900">
         <h1 className="text-3xl font-bold">{collegeUser.name} Verification Dashboard</h1>
+        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+          {[
+            ["Total Checks", history.length],
+            ["Verified", history.filter((item) => item.status === "Verified").length],
+            ["Invalid", history.filter((item) => item.status !== "Verified").length]
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-2xl bg-slate-50 p-4 dark:bg-slate-950">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">{label}</p>
+              <p className="mt-3 text-3xl font-bold">{value}</p>
+            </div>
+          ))}
+        </div>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <input value={certId} onChange={(event) => setCertId(event.target.value)} placeholder="Enter certificate ID" className="flex-1 rounded-2xl border border-slate-200 px-4 py-4 dark:border-slate-700 dark:bg-slate-950" />
           <button type="button" onClick={verifyCert} className="rounded-2xl bg-blue px-6 py-4 text-sm font-semibold text-white">
@@ -163,6 +210,8 @@ export default function CollegeVerify() {
                 <p className="mt-2">Student: {result.data.studentName}</p>
                 <p>Course: {result.data.courseName}</p>
                 <p>College: {result.data.college}</p>
+                <p>Certificate ID: {result.data.certId}</p>
+                <p>Duration: {result.data.duration}</p>
               </>
             ) : (
               <p className="font-bold text-danger">Certificate not valid</p>
@@ -220,6 +269,39 @@ export default function CollegeVerify() {
             </table>
           </div>
         ) : null}
+      </div>
+
+      <div className="rounded-[36px] border border-slate-200 bg-white p-8 dark:border-slate-800 dark:bg-slate-900">
+        <h2 className="text-2xl font-bold">Verification History</h2>
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Recent verification checks from this browser session.</p>
+        {!history.length ? (
+          <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">No verification history yet.</p>
+        ) : (
+          <div className="mt-6 overflow-x-auto">
+            <table className="min-w-full text-left text-sm">
+              <thead className="text-slate-500 dark:text-slate-400">
+                <tr>
+                  <th className="pb-3">Checked At</th>
+                  <th className="pb-3">Cert ID</th>
+                  <th className="pb-3">Student</th>
+                  <th className="pb-3">Course</th>
+                  <th className="pb-3">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((item, index) => (
+                  <tr key={`${item.certId}-${index}`} className="border-t border-slate-100 dark:border-slate-800">
+                    <td className="py-4">{new Date(item.checkedAt).toLocaleString("en-IN")}</td>
+                    <td className="py-4">{item.certId}</td>
+                    <td className="py-4">{item.student}</td>
+                    <td className="py-4">{item.course}</td>
+                    <td className="py-4">{item.status}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

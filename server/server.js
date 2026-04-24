@@ -47,10 +47,25 @@ export const upload = multer({
 const app = express();
 const PORT = process.env.PORT || 5000;
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+const allowedOrigins = new Set(
+  [
+    CLIENT_URL,
+    process.env.CLIENT_URL_2,
+    process.env.CLIENT_URL_3,
+    "http://localhost:3000",
+    "http://127.0.0.1:3000"
+  ].filter(Boolean)
+);
 
 app.use(
   cors({
-    origin: CLIENT_URL,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.has(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
     credentials: true
   })
 );
@@ -94,6 +109,10 @@ app.use((error, _req, res, _next) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`InternTech server running at http://localhost:${PORT}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`InternTech server running at http://localhost:${PORT}`);
+  });
+}
+
+export default app;

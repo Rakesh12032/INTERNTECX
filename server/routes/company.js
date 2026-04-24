@@ -79,10 +79,33 @@ router.post("/login", async (req, res) => {
 router.get("/jobs", verifyToken, requireRole("company"), (req, res) => {
   try {
     db.read();
-    const jobs = db.data.jobs.filter((item) => item.companyId === req.user.id);
+    const jobs = db.data.jobs
+      .filter((item) => item.companyId === req.user.id)
+      .map((job) => ({
+        ...job,
+        applicantCount: db.data.jobApplications.filter((application) => application.jobId === job.id).length
+      }));
     return res.json(jobs);
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch company jobs", error: error.message });
+  }
+});
+
+router.get("/stats", verifyToken, requireRole("company"), (req, res) => {
+  try {
+    db.read();
+    const jobs = db.data.jobs.filter((item) => item.companyId === req.user.id);
+    const jobIds = jobs.map((item) => item.id);
+    const applicants = db.data.jobApplications.filter((item) => jobIds.includes(item.jobId));
+
+    return res.json({
+      jobsPosted: jobs.length,
+      totalApplicants: applicants.length,
+      shortlisted: applicants.filter((item) => item.status === "shortlisted").length,
+      pending: applicants.filter((item) => !item.status || item.status === "pending").length
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to fetch company stats", error: error.message });
   }
 });
 
@@ -90,7 +113,18 @@ router.get("/applicants", verifyToken, requireRole("company"), (req, res) => {
   try {
     db.read();
     const jobs = db.data.jobs.filter((item) => item.companyId === req.user.id).map((item) => item.id);
-    const applicants = db.data.jobApplications.filter((item) => jobs.includes(item.jobId));
+    const applicants = db.data.jobApplications
+      .filter((item) => jobs.includes(item.jobId))
+      .map((application) => {
+        const relatedJob = db.data.jobs.find((job) => job.id === application.jobId);
+        return {
+          ...application,
+          appliedAt: application.appliedAt || application.createdAt || new Date().toISOString(),
+          jobRole: application.jobRole || relatedJob?.role || "Role unavailable",
+          jobLocation: relatedJob?.location || application.location || "Remote"
+        };
+      })
+      .sort((left, right) => new Date(right.appliedAt) - new Date(left.appliedAt));
     return res.json(applicants);
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch applicants", error: error.message });

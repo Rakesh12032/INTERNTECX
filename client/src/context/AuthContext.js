@@ -1,5 +1,6 @@
 import axios from "axios";
 import React, { createContext, useContext, useEffect, useMemo, useReducer } from "react";
+import { API_BASE_URL } from "../utils/config";
 
 const STORAGE_TOKEN_KEY = "interntech_token";
 const STORAGE_USER_KEY = "interntech_user";
@@ -93,7 +94,7 @@ export function AuthProvider({ children }) {
           return;
         }
 
-        const response = await axios.get("http://localhost:5000/api/auth/me", {
+        const response = await axios.get(`${API_BASE_URL}/auth/me`, {
           headers: {
             Authorization: `Bearer ${storedToken}`
           },

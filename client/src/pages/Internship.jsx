@@ -16,7 +16,14 @@ const schema = yup.object({
   year: yup.string().required("Year is required"),
   linkedin: yup.string().url("Enter a valid URL").required("LinkedIn URL is required"),
   github: yup.string().nullable(),
-  whyYou: yup.string().min(20, "Tell us a bit more").required("Reason is required")
+  whyYou: yup.string().min(20, "Tell us a bit more").required("Reason is required"),
+  resumeFile: yup
+    .mixed()
+    .test("fileRequired", "Resume PDF is required", (value) => value?.length > 0)
+    .test("fileType", "Upload PDF only", (value) => {
+      if (!value?.length) return false;
+      return value[0]?.type === "application/pdf";
+    })
 });
 
 export default function Internship() {
@@ -25,7 +32,12 @@ export default function Internship() {
   const [submitting, setSubmitting] = useState(false);
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors }
+  } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
       name: user?.name || "",
@@ -56,7 +68,26 @@ export default function Internship() {
 
     try {
       setSubmitting(true);
-      await api.post("/internships/apply", { ...values, trackId: selectedTrack.id });
+
+      const formData = new FormData();
+      formData.append("trackId", selectedTrack.id);
+      formData.append("name", values.name);
+      formData.append("email", values.email);
+      formData.append("phone", values.phone);
+      formData.append("college", values.college);
+      formData.append("branch", values.branch);
+      formData.append("year", values.year);
+      formData.append("linkedin", values.linkedin);
+      formData.append("github", values.github || "");
+      formData.append("whyYou", values.whyYou);
+      formData.append("resumeFile", values.resumeFile[0]);
+
+      await api.post("/internships/apply", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      });
+
       toast.success("Internship application submitted");
       setSelectedTrack(null);
       reset();
@@ -71,20 +102,36 @@ export default function Internship() {
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <section className="rounded-[36px] bg-gradient-to-br from-navy via-blue to-cyan p-8 text-white">
         <h1 className="text-4xl font-bold">Internships that build real experience</h1>
-        <p className="mt-4 max-w-2xl text-lg text-slate-100">Choose a guided track, work on projects, and earn a verified certificate after completion.</p>
+        <p className="mt-4 max-w-2xl text-lg text-slate-100">
+          Choose a guided track, work on projects, and earn a verified certificate after completion.
+        </p>
       </section>
 
       <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
         {tracks.map((track) => (
-          <div key={track.id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div
+            key={track.id}
+            className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+          >
             <h3 className="text-2xl font-bold">{track.title}</h3>
-            <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">{track.duration} · ₹{track.price}</p>
+            <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
+              {track.duration} | Rs. {track.price}
+            </p>
             <div className="mt-4 flex flex-wrap gap-2">
               {(track.featuredSkills || []).map((skill) => (
-                <span key={skill} className="rounded-full bg-blue/10 px-3 py-1 text-xs font-semibold text-blue">{skill}</span>
+                <span
+                  key={skill}
+                  className="rounded-full bg-blue/10 px-3 py-1 text-xs font-semibold text-blue"
+                >
+                  {skill}
+                </span>
               ))}
             </div>
-            <button type="button" onClick={() => setSelectedTrack(track)} className="mt-6 w-full rounded-2xl bg-blue px-4 py-3 text-sm font-semibold text-white transition hover:bg-navy">
+            <button
+              type="button"
+              onClick={() => setSelectedTrack(track)}
+              className="mt-6 w-full rounded-2xl bg-blue px-4 py-3 text-sm font-semibold text-white transition hover:bg-navy"
+            >
               Apply Now
             </button>
           </div>
@@ -99,7 +146,11 @@ export default function Internship() {
                 <p className="text-sm font-semibold uppercase tracking-[0.24em] text-blue">Apply Now</p>
                 <h2 className="mt-2 text-3xl font-bold">{selectedTrack.title}</h2>
               </div>
-              <button type="button" onClick={() => setSelectedTrack(null)} className="rounded-full border border-slate-200 px-4 py-2 text-sm dark:border-slate-700">
+              <button
+                type="button"
+                onClick={() => setSelectedTrack(null)}
+                className="rounded-full border border-slate-200 px-4 py-2 text-sm dark:border-slate-700"
+              >
                 Close
               </button>
             </div>
@@ -117,17 +168,42 @@ export default function Internship() {
               ].map(([field, label]) => (
                 <div key={field} className={field === "github" ? "sm:col-span-2" : ""}>
                   <label className="mb-2 block text-sm font-semibold">{label}</label>
-                  <input {...register(field)} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-blue dark:border-slate-700 dark:bg-slate-950" />
+                  <input
+                    {...register(field)}
+                    className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-blue dark:border-slate-700 dark:bg-slate-950"
+                  />
                   {errors[field] ? <p className="mt-2 text-sm text-danger">{errors[field].message}</p> : null}
                 </div>
               ))}
+
+              <div className="sm:col-span-2">
+                <label className="mb-2 block text-sm font-semibold">Resume (PDF only)</label>
+                <input
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  {...register("resumeFile")}
+                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue dark:border-slate-700 dark:bg-slate-950"
+                />
+                {errors.resumeFile ? (
+                  <p className="mt-2 text-sm text-danger">{errors.resumeFile.message}</p>
+                ) : null}
+              </div>
+
               <div className="sm:col-span-2">
                 <label className="mb-2 block text-sm font-semibold">Why should we choose you?</label>
-                <textarea {...register("whyYou")} rows="5" className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-blue dark:border-slate-700 dark:bg-slate-950" />
+                <textarea
+                  {...register("whyYou")}
+                  rows="5"
+                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-blue dark:border-slate-700 dark:bg-slate-950"
+                />
                 {errors.whyYou ? <p className="mt-2 text-sm text-danger">{errors.whyYou.message}</p> : null}
               </div>
               <div className="sm:col-span-2">
-                <button type="submit" disabled={submitting} className="w-full rounded-2xl bg-blue px-4 py-4 text-sm font-semibold text-white transition hover:bg-navy disabled:opacity-70">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full rounded-2xl bg-blue px-4 py-4 text-sm font-semibold text-white transition hover:bg-navy disabled:opacity-70"
+                >
                   {submitting ? "Submitting..." : "Submit Application"}
                 </button>
               </div>

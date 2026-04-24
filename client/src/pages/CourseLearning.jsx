@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import { Link, useParams } from "react-router-dom";
 import api from "../utils/api";
 import { generateCertificatePDF } from "../utils/generateCertificate";
+import { getCourseVideoUrl } from "../utils/courseVideos";
 
 function progressWidth(value) {
   if (value >= 100) return "w-full";
@@ -62,6 +63,10 @@ export default function CourseLearning() {
 
   const lessons = useMemo(() => course?.modules.flatMap((module) => module.lessons) || [], [course]);
   const activeLesson = lessons.find((lesson) => lesson.id === activeLessonId) || lessons[0];
+  const activeVideoUrl =
+    activeLesson?.videoUrl && !activeLesson.videoUrl.includes("dQw4w9WgXcQ")
+      ? activeLesson.videoUrl
+      : getCourseVideoUrl(course);
 
   const markComplete = async () => {
     try {
@@ -146,7 +151,7 @@ export default function CourseLearning() {
         <div className="overflow-hidden rounded-3xl">
           <iframe
             title={activeLesson.title}
-            src={activeLesson.videoUrl}
+            src={activeVideoUrl}
             className="h-[360px] w-full rounded-3xl"
             allowFullScreen
           />

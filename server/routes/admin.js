@@ -205,10 +205,34 @@ router.put("/withdrawals/:id", async (req, res) => {
       return res.status(404).json({ message: "Withdrawal request not found" });
     }
 
+    const previousStatus = request.status;
     request.status = req.body.status || request.status;
     request.reason = req.body.reason || request.reason || null;
 
     const student = db.data.users.find((item) => item.id === request.studentId);
+
+    if (
+      request.status === "rejected" &&
+      previousStatus !== "rejected" &&
+      student &&
+      !request.balanceRestored
+    ) {
+      student.walletBalance = (student.walletBalance || 0) + Number(request.amount || 0);
+      request.balanceRestored = true;
+      db.data.walletHistory.push({
+        id: uuidv4(),
+        userId: student.id,
+        type: "credit",
+        amount: Number(request.amount || 0),
+        description: "Withdrawal rejected - amount restored",
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    if (request.status === "approved") {
+      request.balanceRestored = false;
+    }
+
     db.write();
 
     if (student) {

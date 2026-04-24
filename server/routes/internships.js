@@ -41,6 +41,18 @@ router.post("/apply", verifyToken, requireRole("student"), upload.single("resume
       return res.status(404).json({ message: "Internship track not found" });
     }
 
+    if (!req.file) {
+      return res.status(400).json({ message: "Resume PDF is required" });
+    }
+
+    const isPdf =
+      req.file.mimetype === "application/pdf" ||
+      req.file.originalname?.toLowerCase().endsWith(".pdf");
+
+    if (!isPdf) {
+      return res.status(400).json({ message: "Only PDF resumes are allowed" });
+    }
+
     const existingApplication = db.data.internshipApplications.find(
       (item) => item.studentId === req.user.id && item.trackId === track.id
     );
@@ -64,6 +76,7 @@ router.post("/apply", verifyToken, requireRole("student"), upload.single("resume
       github,
       whyYou,
       resumeFileName: req.file?.originalname || null,
+      resumeFileSize: req.file?.size || null,
       status: "pending",
       createdAt: new Date().toISOString()
     };

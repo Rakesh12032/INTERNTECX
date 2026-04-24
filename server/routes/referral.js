@@ -15,13 +15,21 @@ router.get("/my", verifyToken, requireRole("student"), (req, res) => {
     }
 
     const referralList = db.data.referralTransactions.filter((item) => item.referrerId === req.user.id);
+    const pendingWithdrawal = db.data.withdrawalRequests
+      .filter((item) => item.studentId === req.user.id && item.status === "pending")
+      .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const approvedAmbassador = db.data.ambassadors.find(
+      (item) => item.studentId === req.user.id && item.status === "approved"
+    );
 
     return res.json({
       referralCode: user.referralCode,
       referralCount: user.referralCount || 0,
       referralList,
       walletBalance: user.walletBalance || 0,
-      totalEarned: user.totalEarned || 0
+      totalEarned: user.totalEarned || 0,
+      pendingWithdrawal,
+      ambassadorStatus: approvedAmbassador ? "approved" : "inactive"
     });
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch referral data", error: error.message });

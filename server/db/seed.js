@@ -2,6 +2,21 @@ import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 import db, { defaultData } from "./database.js";
 
+const courseVideoBySlug = {
+  "full-stack-web-development": "https://www.youtube.com/embed/nu_pCVPKzTk",
+  "python-programming": "https://www.youtube.com/embed/rfscVS0vtbw",
+  "machine-learning-with-python": "https://www.youtube.com/embed/i_LwzRVP7bg",
+  "data-science-and-analytics": "https://www.youtube.com/embed/ua-CiDNNj30",
+  "ui-ux-design-fundamentals": "https://www.youtube.com/embed/c9Wg6Cb_YlU",
+  "dsa-in-java": "https://www.youtube.com/embed/xk4_1vDrzzo",
+  "cybersecurity-fundamentals": "https://www.youtube.com/embed/U_P23SqJaDc",
+  "cloud-computing-with-aws": "https://www.youtube.com/embed/3hLmDS179YE",
+  "android-app-development": "https://www.youtube.com/embed/fis26HvvDII",
+  "sql-and-database-design": "https://www.youtube.com/embed/HXV3zeQKqGY",
+  "devops-and-docker-basics": "https://www.youtube.com/embed/3c-iBn73dDE",
+  "digital-marketing-for-tech": "https://www.youtube.com/embed/nU-IIXBWlS4"
+};
+
 const createModule = (title, lessons) => ({
   id: uuidv4(),
   title,
@@ -11,7 +26,7 @@ const createModule = (title, lessons) => ({
     order: index + 1,
     duration: `${15 + index * 5} min`,
     description: `${lessonTitle} with project-oriented explanation, examples, and guided practice.`,
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    videoUrl: ""
   }))
 });
 
@@ -336,6 +351,13 @@ async function seed() {
   const courses = courseDefinitions.map((course) => ({
     id: uuidv4(),
     ...course,
+    modules: course.modules.map((module) => ({
+      ...module,
+      lessons: module.lessons.map((lesson) => ({
+        ...lesson,
+        videoUrl: courseVideoBySlug[course.slug] || "https://www.youtube.com/embed/rfscVS0vtbw"
+      }))
+    })),
     enrolledCount: 120 + Math.floor(Math.random() * 320),
     rating: 4.5,
     createdAt: new Date().toISOString()

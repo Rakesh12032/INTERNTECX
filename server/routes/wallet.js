@@ -27,12 +27,23 @@ router.post("/withdraw", verifyToken, requireRole("student"), async (req, res) =
       return res.status(404).json({ message: "User not found" });
     }
 
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+      return res.status(400).json({ message: "Enter a valid withdrawal amount" });
+    }
+
     if (numericAmount < 500) {
       return res.status(400).json({ message: "Minimum withdrawal amount is 500" });
     }
 
     if (numericAmount > (user.walletBalance || 0)) {
       return res.status(400).json({ message: "Withdrawal amount exceeds wallet balance" });
+    }
+
+    const hasBankDetails = accountName && bankName && accountNumber && ifsc;
+    const hasUpi = Boolean(upiId);
+
+    if (!hasBankDetails && !hasUpi) {
+      return res.status(400).json({ message: "Provide either complete bank details or a UPI ID" });
     }
 
     const request = {

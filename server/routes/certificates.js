@@ -106,6 +106,8 @@ router.get("/verification-letter/:certId", (req, res) => {
       letterId: `VL-${certificate.certId}`,
       issuedAt: new Date().toISOString(),
       organization: "InternTech",
+      signedBy: "Director, InternTech Learning Programs",
+      supportEmail: "support@interntech.in",
       statement: "This document confirms that the certificate listed below has been verified against InternTech records.",
       certificate
     });

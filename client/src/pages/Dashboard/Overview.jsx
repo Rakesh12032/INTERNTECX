@@ -24,21 +24,25 @@ export default function Overview() {
   const { user } = useAuth();
   const [courses, setCourses] = useState([]);
   const [certificates, setCertificates] = useState([]);
+  const [referralData, setReferralData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchOverview = async () => {
       try {
-        const [coursesResponse, certificatesResponse] = await Promise.all([
+        const [coursesResponse, certificatesResponse, referralResponse] = await Promise.all([
           api.get("/courses/my"),
-          api.get("/certificates/my")
+          api.get("/certificates/my"),
+          api.get("/referral/my")
         ]);
 
         setCourses((coursesResponse.data.courses || []).slice(0, 3));
         setCertificates(certificatesResponse.data || []);
+        setReferralData(referralResponse.data || null);
       } catch (_error) {
         setCourses([]);
         setCertificates([]);
+        setReferralData(null);
       } finally {
         setLoading(false);
       }
@@ -57,6 +61,17 @@ export default function Overview() {
         <p className="mt-4 max-w-2xl text-slate-100">
           Track your learning, certificates, referrals, and next opportunities from one place.
         </p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link to="/courses" className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-navy transition hover:-translate-y-0.5">
+            Browse Courses
+          </Link>
+          <Link to="/internship" className="rounded-2xl border border-white/40 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
+            Apply Internship
+          </Link>
+          <Link to="/dashboard/referral" className="rounded-2xl border border-white/40 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
+            Share and Earn
+          </Link>
+        </div>
       </section>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -76,6 +91,58 @@ export default function Overview() {
           </div>
         ))}
       </div>
+
+      <section className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-bold">Profile Snapshot</h2>
+              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                Keep an eye on your learner identity, college profile, and earning momentum.
+              </p>
+            </div>
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue/10 text-2xl font-bold text-blue">
+              {(user?.name || "L").slice(0, 1).toUpperCase()}
+            </div>
+          </div>
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="rounded-2xl bg-slate-50 p-4 dark:bg-slate-950">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">College</p>
+              <p className="mt-2 font-semibold">{user?.college || "Add your college profile"}</p>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4 dark:bg-slate-950">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Referral Code</p>
+              <p className="mt-2 font-mono font-semibold">{referralData?.referralCode || user?.referralCode || "-"}</p>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4 dark:bg-slate-950">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Ambassador Status</p>
+              <p className="mt-2 font-semibold">{referralData?.ambassadorStatus === "approved" ? "Approved Ambassador" : "Not active yet"}</p>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4 dark:bg-slate-950">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Pending Withdrawal</p>
+              <p className="mt-2 font-semibold">Rs. {referralData?.pendingWithdrawal || 0}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-3xl border border-gold/30 bg-[linear-gradient(180deg,#fffdf6_0%,#f9f1d9_100%)] p-6 text-slate-900">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Momentum Card</p>
+          <h2 className="mt-3 text-2xl font-bold text-navy">Keep your streak alive</h2>
+          <p className="mt-3 text-sm leading-7 text-slate-600">
+            Finish one more lesson, unlock another referral, or attempt your next quiz to keep moving toward certificates and payouts.
+          </p>
+          <div className="mt-6 space-y-3">
+            <div className="rounded-2xl bg-white/70 p-4">
+              <p className="text-sm font-semibold">Courses in progress</p>
+              <p className="mt-2 text-2xl font-bold">{courses.length}</p>
+            </div>
+            <div className="rounded-2xl bg-white/70 p-4">
+              <p className="text-sm font-semibold">Certificates earned</p>
+              <p className="mt-2 text-2xl font-bold">{certificates.length}</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section className="rounded-3xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
         <div className="flex items-center justify-between">

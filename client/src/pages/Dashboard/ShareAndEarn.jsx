@@ -25,6 +25,15 @@ export default function ShareAndEarn() {
   });
   const [submitting, setSubmitting] = useState(false);
 
+  const milestone = useMemo(() => {
+    const count = referralData?.referralCount || 0;
+    if (count >= 25) return "Campus Legend";
+    if (count >= 10) return "Referral Pro";
+    if (count >= 5) return "Growth Starter";
+    if (count >= 1) return "First Win";
+    return "New Ambassador";
+  }, [referralData]);
+
   const loadData = async () => {
     try {
       const [referralResponse, historyResponse, withdrawalsResponse] = await Promise.all([
@@ -55,8 +64,26 @@ export default function ShareAndEarn() {
     }
   };
 
+  const openShareWindow = (url) => {
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
   const submitWithdrawal = async (event) => {
     event.preventDefault();
+    const numericAmount = Number(form.amount);
+    const hasBankDetails = form.accountName && form.bankName && form.accountNumber && form.ifsc;
+    const hasUpi = Boolean(form.upiId);
+
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+      toast.error("Enter a valid withdrawal amount");
+      return;
+    }
+
+    if (!hasBankDetails && !hasUpi) {
+      toast.error("Add either full bank details or a UPI ID");
+      return;
+    }
+
     try {
       setSubmitting(true);
       await api.post("/wallet/withdraw", form);
@@ -97,6 +124,9 @@ export default function ShareAndEarn() {
             Copy Link
           </button>
         </div>
+        <div className="mt-6 inline-flex rounded-full bg-white/70 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em]">
+          Milestone: {milestone}
+        </div>
       </section>
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -119,6 +149,7 @@ export default function ShareAndEarn() {
           <div className={`h-4 rounded-full bg-blue ${progressWidth(referralData.walletBalance || 0)}`} />
         </div>
         <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">Rs. {referralData.walletBalance || 0} / Rs. 500 - {remaining} more to go.</p>
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Pending withdrawal under review: Rs. {referralData.pendingWithdrawal || 0}</p>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
@@ -155,6 +186,44 @@ export default function ShareAndEarn() {
 
         <section className="space-y-6">
           <div className="rounded-3xl border border-slate-200 bg-white p-8 dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-2xl font-bold">Share Faster</h2>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() =>
+                  openShareWindow(`https://wa.me/?text=${encodeURIComponent(`Join me on InternTech and use my referral link: ${referralLink}`)}`)
+                }
+                className="rounded-2xl bg-[#25D366] px-4 py-4 text-sm font-semibold text-white"
+              >
+                Share on WhatsApp
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  openShareWindow(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(referralLink)}`)
+                }
+                className="rounded-2xl bg-[#0A66C2] px-4 py-4 text-sm font-semibold text-white"
+              >
+                Share on LinkedIn
+              </button>
+              <button
+                type="button"
+                onClick={() => handleCopy(`I am learning on InternTech. Join with my code ${referralData.referralCode}: ${referralLink}`, "Caption")}
+                className="rounded-2xl border border-slate-300 px-4 py-4 text-sm font-semibold dark:border-slate-700"
+              >
+                Copy Caption
+              </button>
+              <button
+                type="button"
+                onClick={() => openShareWindow(`mailto:?subject=${encodeURIComponent("Join InternTech")}&body=${encodeURIComponent(`Use my referral code ${referralData.referralCode} and register here: ${referralLink}`)}`)}
+                className="rounded-2xl border border-slate-300 px-4 py-4 text-sm font-semibold dark:border-slate-700"
+              >
+                Share via Email
+              </button>
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-slate-200 bg-white p-8 dark:border-slate-800 dark:bg-slate-900">
             <h2 className="text-2xl font-bold">Withdrawal</h2>
             {(referralData.walletBalance || 0) >= 500 ? (
               <form onSubmit={submitWithdrawal} className="mt-6 space-y-4">
@@ -171,10 +240,14 @@ export default function ShareAndEarn() {
                     <input
                       value={form[key]}
                       onChange={(event) => setForm((prev) => ({ ...prev, [key]: event.target.value }))}
+                      placeholder={key === "upiId" ? "yourname@upi" : ""}
                       className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-blue dark:border-slate-700 dark:bg-slate-950"
                     />
                   </div>
                 ))}
+                <p className="text-xs leading-6 text-slate-500 dark:text-slate-400">
+                  Use either complete bank details or just your UPI ID. Rejected withdrawal requests are restored back to your wallet.
+                </p>
                 <button type="submit" disabled={submitting} className="w-full rounded-2xl bg-blue px-4 py-4 text-sm font-semibold text-white">
                   {submitting ? "Submitting..." : "Request Withdrawal"}
                 </button>
@@ -214,8 +287,15 @@ export default function ShareAndEarn() {
               <div>
                 <p className="font-semibold">Rs. {item.amount}</p>
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{new Date(item.createdAt).toLocaleString()}</p>
+                {item.reason ? <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Reason: {item.reason}</p> : null}
               </div>
-              <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                item.status === "approved"
+                  ? "bg-success/10 text-success"
+                  : item.status === "rejected"
+                    ? "bg-danger/10 text-danger"
+                    : "bg-amber-100 text-amber-700"
+              }`}>
                 {item.status}
               </span>
             </div>
