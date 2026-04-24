@@ -5,6 +5,7 @@ import fs from "fs";
 import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
+import db from "./db/database.js";
 
 import adminRoutes from "./routes/admin.js";
 import ambassadorRoutes from "./routes/ambassador.js";
@@ -77,6 +78,19 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use("/uploads", express.static(uploadsDirectory));
 
+app.use(async (_req, res, next) => {
+  try {
+    await db.connect();
+    return next();
+  } catch (error) {
+    console.error("[Request Bootstrap] Mongo connection error:", error.message);
+    return res.status(500).json({
+      message: "Database connection failed",
+      error: error.message
+    });
+  }
+});
+
 app.get("/api/health", (_req, res) => {
   res.json({
     ok: true,
@@ -107,7 +121,10 @@ app.use((req, res) => {
 });
 
 app.use((error, _req, res, _next) => {
-  console.error("InternTech server error:", error);
+  console.error("InternTech server error:", {
+    message: error.message,
+    stack: error.stack
+  });
   res.status(error.statusCode || 500).json({
     message: error.message || "Internal server error"
   });
