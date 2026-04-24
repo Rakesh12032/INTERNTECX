@@ -47,10 +47,29 @@ export const upload = multer({
 
 const app = express();
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+const allowedOrigins = new Set([
+  CLIENT_URL,
+  "https://interntecx.vercel.app",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000"
+]);
 
 app.use(
   cors({
-    origin: CLIENT_URL,
+    origin: (origin, callback) => {
+      // Allow non-browser clients (no Origin header).
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.has(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true
   })
 );
