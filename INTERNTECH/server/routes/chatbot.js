@@ -57,12 +57,12 @@ function getReply(question) {
   return "Need human help? WhatsApp us. I can also help with courses, internships, jobs, certificates, dashboard guidance, referrals, and portal help.";
 }
 
-router.post("/ask", (req, res) => {
+router.post("/ask", async (req, res) => {
   try {
     const { message, userName } = req.body;
     const reply = getReply(message);
 
-    db.read();
+    await db.read();
     db.data.chatLogs.push({
       id: `chat-${Date.now()}`,
       role: "user",
@@ -71,7 +71,7 @@ router.post("/ask", (req, res) => {
       userName: userName || null,
       createdAt: new Date().toISOString()
     });
-    db.write();
+    await db.write();
 
     return res.json({ reply });
   } catch (error) {

@@ -5,9 +5,9 @@ import { requireRole, verifyToken } from "../middleware/auth.js";
 
 const router = Router();
 
-router.get("/me", verifyToken, requireRole("student"), (req, res) => {
+router.get("/me", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const application = db.data.ambassadors.find((item) => item.studentId === req.user.id);
     return res.json(application || null);
   } catch (error) {
@@ -15,10 +15,10 @@ router.get("/me", verifyToken, requireRole("student"), (req, res) => {
   }
 });
 
-router.post("/apply", verifyToken, requireRole("student"), (req, res) => {
+router.post("/apply", verifyToken, requireRole("student"), async (req, res) => {
   try {
     const { instagram, linkedin, reason, monthlyReferrals } = req.body;
-    db.read();
+    await db.read();
 
     const existing = db.data.ambassadors.find((item) => item.studentId === req.user.id);
     if (existing) {
@@ -42,16 +42,16 @@ router.post("/apply", verifyToken, requireRole("student"), (req, res) => {
     };
 
     db.data.ambassadors.push(application);
-    db.write();
+    await db.write();
     return res.status(201).json({ message: "Ambassador application submitted", application });
   } catch (error) {
     return res.status(500).json({ message: "Failed to apply as ambassador", error: error.message });
   }
 });
 
-router.get("/leaderboard", (_req, res) => {
+router.get("/leaderboard", async (_req, res) => {
   try {
-    db.read();
+    await db.read();
     const leaderboard = db.data.ambassadors
       .filter((item) => item.status === "approved")
       .sort((a, b) => (b.referralCount || 0) - (a.referralCount || 0))

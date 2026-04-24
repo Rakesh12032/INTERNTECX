@@ -3,7 +3,7 @@ import { Router } from "express";
 export function createPlaceholderRouter(name, extraRoutes = []) {
   const router = Router();
 
-  router.get("/", (_req, res) => {
+  router.get("/", async (_req, res) => {
     res.json({
       module: name,
       status: "initialized",

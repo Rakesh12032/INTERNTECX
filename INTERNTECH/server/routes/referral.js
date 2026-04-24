@@ -5,9 +5,9 @@ import { requireRole, verifyToken } from "../middleware/auth.js";
 
 const router = Router();
 
-router.get("/my", verifyToken, requireRole("student"), (req, res) => {
+router.get("/my", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const user = db.data.users.find((item) => item.id === req.user.id);
 
     if (!user) {
@@ -28,10 +28,10 @@ router.get("/my", verifyToken, requireRole("student"), (req, res) => {
   }
 });
 
-router.post("/process-payment", (req, res) => {
+router.post("/process-payment", async (req, res) => {
   try {
     const { newStudentId, referralCode, paymentConfirmed = true } = req.body;
-    db.read();
+    await db.read();
 
     if (!paymentConfirmed) {
       return res.status(400).json({ message: "Payment not confirmed" });
@@ -79,7 +79,7 @@ router.post("/process-payment", (req, res) => {
       timestamp: new Date().toISOString()
     });
 
-    db.write();
+    await db.write();
     return res.json({ message: "Referral reward processed successfully" });
   } catch (error) {
     return res.status(500).json({ message: "Failed to process referral reward", error: error.message });

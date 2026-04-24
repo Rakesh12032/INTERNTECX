@@ -5,9 +5,9 @@ import { requireRole, verifyToken } from "../middleware/auth.js";
 
 const router = Router();
 
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const { location, experience, type, search } = req.query;
     let jobs = [...db.data.jobs];
 
@@ -36,9 +36,9 @@ router.get("/", (req, res) => {
   }
 });
 
-router.get("/my/applications", verifyToken, requireRole("student"), (req, res) => {
+router.get("/my/applications", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const applications = db.data.jobApplications
       .filter((item) => item.studentId === req.user.id)
       .map((application) => {
@@ -58,9 +58,9 @@ router.get("/my/applications", verifyToken, requireRole("student"), (req, res) =
   }
 });
 
-router.get("/saved", verifyToken, requireRole("student"), (req, res) => {
+router.get("/saved", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const savedJobs = db.data.savedJobs
       .filter((item) => item.studentId === req.user.id)
       .map((savedJob) => {
@@ -81,9 +81,9 @@ router.get("/saved", verifyToken, requireRole("student"), (req, res) => {
   }
 });
 
-router.get("/:id", (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const job = db.data.jobs.find((item) => item.id === req.params.id);
 
     if (!job) {
@@ -108,9 +108,9 @@ router.get("/:id", (req, res) => {
   }
 });
 
-router.post("/:id/apply", verifyToken, requireRole("student"), (req, res) => {
+router.post("/:id/apply", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const job = db.data.jobs.find((item) => item.id === req.params.id);
     const student = db.data.users.find((item) => item.id === req.user.id);
 
@@ -142,7 +142,7 @@ router.post("/:id/apply", verifyToken, requireRole("student"), (req, res) => {
     };
 
     db.data.jobApplications.push(application);
-    db.write();
+    await db.write();
 
     return res.status(201).json({ message: "Application submitted", application });
   } catch (error) {
@@ -150,9 +150,9 @@ router.post("/:id/apply", verifyToken, requireRole("student"), (req, res) => {
   }
 });
 
-router.post("/:id/save", verifyToken, requireRole("student"), (req, res) => {
+router.post("/:id/save", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const job = db.data.jobs.find((item) => item.id === req.params.id);
 
     if (!job) {
@@ -175,7 +175,7 @@ router.post("/:id/save", verifyToken, requireRole("student"), (req, res) => {
     };
 
     db.data.savedJobs.push(savedJob);
-    db.write();
+    await db.write();
 
     return res.status(201).json({ message: "Job saved", savedJob });
   } catch (error) {
@@ -183,9 +183,9 @@ router.post("/:id/save", verifyToken, requireRole("student"), (req, res) => {
   }
 });
 
-router.delete("/saved/:jobId", verifyToken, requireRole("student"), (req, res) => {
+router.delete("/saved/:jobId", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const existing = db.data.savedJobs.find(
       (item) => item.jobId === req.params.jobId && item.studentId === req.user.id
     );
@@ -195,7 +195,7 @@ router.delete("/saved/:jobId", verifyToken, requireRole("student"), (req, res) =
     }
 
     db.data.savedJobs = db.data.savedJobs.filter((item) => item.id !== existing.id);
-    db.write();
+    await db.write();
 
     return res.json({ message: "Saved job removed" });
   } catch (error) {

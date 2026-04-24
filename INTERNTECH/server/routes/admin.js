@@ -9,9 +9,9 @@ const router = Router();
 
 router.use(verifyToken, requireRole("admin"));
 
-router.get("/stats", (req, res) => {
+router.get("/stats", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const totalStudents = db.data.users.filter((item) => item.role === "student").length;
     const totalEnrollments = db.data.enrollments.length;
     const totalCertificates = db.data.certificates.length;
@@ -35,9 +35,9 @@ router.get("/stats", (req, res) => {
   }
 });
 
-router.get("/internship-applications", (req, res) => {
+router.get("/internship-applications", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const status = req.query.status;
     let applications = [...db.data.internshipApplications];
 
@@ -51,9 +51,9 @@ router.get("/internship-applications", (req, res) => {
   }
 });
 
-router.put("/internship-applications/:id", (req, res) => {
+router.put("/internship-applications/:id", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const application = db.data.internshipApplications.find((item) => item.id === req.params.id);
 
     if (!application) {
@@ -62,7 +62,7 @@ router.put("/internship-applications/:id", (req, res) => {
 
     application.status = req.body.status || application.status;
     application.updatedAt = new Date().toISOString();
-    db.write();
+    await db.write();
 
     return res.json({ message: "Internship application updated", application });
   } catch (error) {
@@ -70,9 +70,9 @@ router.put("/internship-applications/:id", (req, res) => {
   }
 });
 
-router.get("/students", (req, res) => {
+router.get("/students", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const search = String(req.query.search || "").toLowerCase();
     let students = db.data.users.filter((item) => item.role === "student");
 
@@ -91,64 +91,64 @@ router.get("/students", (req, res) => {
   }
 });
 
-router.put("/students/:id/ban", (req, res) => {
+router.put("/students/:id/ban", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const student = db.data.users.find((item) => item.id === req.params.id && item.role === "student");
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
     student.status = "banned";
-    db.write();
+    await db.write();
     return res.json({ message: "Student banned" });
   } catch (error) {
     return res.status(500).json({ message: "Failed to ban student", error: error.message });
   }
 });
 
-router.put("/students/:id/unban", (req, res) => {
+router.put("/students/:id/unban", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const student = db.data.users.find((item) => item.id === req.params.id && item.role === "student");
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
     student.status = "active";
-    db.write();
+    await db.write();
     return res.json({ message: "Student unbanned" });
   } catch (error) {
     return res.status(500).json({ message: "Failed to unban student", error: error.message });
   }
 });
 
-router.get("/certificates", (req, res) => {
+router.get("/certificates", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     return res.json(db.data.certificates);
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch certificates", error: error.message });
   }
 });
 
-router.put("/certificates/:certId/revoke", (req, res) => {
+router.put("/certificates/:certId/revoke", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const certificate = db.data.certificates.find((item) => item.certId === req.params.certId);
     if (!certificate) {
       return res.status(404).json({ message: "Certificate not found" });
     }
     certificate.status = "revoked";
     certificate.revokeReason = req.body.reason || "Revoked by admin";
-    db.write();
+    await db.write();
     return res.json({ message: "Certificate revoked", certificate });
   } catch (error) {
     return res.status(500).json({ message: "Failed to revoke certificate", error: error.message });
   }
 });
 
-router.post("/certificates/:certId/reissue", (req, res) => {
+router.post("/certificates/:certId/reissue", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const certificate = db.data.certificates.find((item) => item.certId === req.params.certId);
     if (!certificate) {
       return res.status(404).json({ message: "Certificate not found" });
@@ -167,25 +167,25 @@ router.post("/certificates/:certId/reissue", (req, res) => {
     };
 
     db.data.certificates.push(nextCertificate);
-    db.write();
+    await db.write();
     return res.json({ message: "Certificate reissued", certificate: nextCertificate });
   } catch (error) {
     return res.status(500).json({ message: "Failed to reissue certificate", error: error.message });
   }
 });
 
-router.get("/verification-logs", (req, res) => {
+router.get("/verification-logs", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     return res.json(db.data.verificationLogs);
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch verification logs", error: error.message });
   }
 });
 
-router.get("/withdrawals", (req, res) => {
+router.get("/withdrawals", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const status = req.query.status;
     let requests = [...db.data.withdrawalRequests];
     if (status) {
@@ -199,7 +199,7 @@ router.get("/withdrawals", (req, res) => {
 
 router.put("/withdrawals/:id", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const request = db.data.withdrawalRequests.find((item) => item.id === req.params.id);
     if (!request) {
       return res.status(404).json({ message: "Withdrawal request not found" });
@@ -209,7 +209,7 @@ router.put("/withdrawals/:id", async (req, res) => {
     request.reason = req.body.reason || request.reason || null;
 
     const student = db.data.users.find((item) => item.id === request.studentId);
-    db.write();
+    await db.write();
 
     if (student) {
       await sendWithdrawalEmail(student.email, student.name, request.amount, request.status);
@@ -221,9 +221,9 @@ router.put("/withdrawals/:id", async (req, res) => {
   }
 });
 
-router.get("/ambassadors", (req, res) => {
+router.get("/ambassadors", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const status = req.query.status;
     let ambassadors = [...db.data.ambassadors];
     if (status) {
@@ -235,24 +235,24 @@ router.get("/ambassadors", (req, res) => {
   }
 });
 
-router.put("/ambassadors/:id", (req, res) => {
+router.put("/ambassadors/:id", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const ambassador = db.data.ambassadors.find((item) => item.id === req.params.id);
     if (!ambassador) {
       return res.status(404).json({ message: "Ambassador application not found" });
     }
     ambassador.status = req.body.status || ambassador.status;
-    db.write();
+    await db.write();
     return res.json({ message: "Ambassador status updated", ambassador });
   } catch (error) {
     return res.status(500).json({ message: "Failed to update ambassador", error: error.message });
   }
 });
 
-router.get("/colleges", (req, res) => {
+router.get("/colleges", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     return res.json(db.data.colleges);
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch colleges", error: error.message });
@@ -262,7 +262,7 @@ router.get("/colleges", (req, res) => {
 router.post("/colleges", async (req, res) => {
   try {
     const { name, email, password, city, state } = req.body;
-    db.read();
+    await db.read();
     const existing = db.data.colleges.find((item) => item.email === email);
     if (existing) {
       return res.status(409).json({ message: "College email already exists" });
@@ -279,34 +279,34 @@ router.post("/colleges", async (req, res) => {
       status: "active",
       createdAt: new Date().toISOString()
     });
-    db.write();
+    await db.write();
     return res.status(201).json({ message: "College created" });
   } catch (error) {
     return res.status(500).json({ message: "Failed to create college", error: error.message });
   }
 });
 
-router.get("/companies", (req, res) => {
+router.get("/companies", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     return res.json(db.data.companies);
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch companies", error: error.message });
   }
 });
 
-router.get("/courses", (req, res) => {
+router.get("/courses", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     return res.json(db.data.courses);
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch courses", error: error.message });
   }
 });
 
-router.post("/courses", (req, res) => {
+router.post("/courses", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const course = {
       id: uuidv4(),
       title: req.body.title,
@@ -331,67 +331,67 @@ router.post("/courses", (req, res) => {
       createdAt: new Date().toISOString()
     };
     db.data.courses.push(course);
-    db.write();
+    await db.write();
     return res.status(201).json({ message: "Course created", course });
   } catch (error) {
     return res.status(500).json({ message: "Failed to create course", error: error.message });
   }
 });
 
-router.put("/courses/:id", (req, res) => {
+router.put("/courses/:id", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const course = db.data.courses.find((item) => item.id === req.params.id);
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }
     Object.assign(course, req.body);
-    db.write();
+    await db.write();
     return res.json({ message: "Course updated", course });
   } catch (error) {
     return res.status(500).json({ message: "Failed to update course", error: error.message });
   }
 });
 
-router.delete("/courses/:id", (req, res) => {
+router.delete("/courses/:id", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const existing = db.data.courses.find((item) => item.id === req.params.id);
     if (!existing) {
       return res.status(404).json({ message: "Course not found" });
     }
     db.data.courses = db.data.courses.filter((item) => item.id !== req.params.id);
-    db.write();
+    await db.write();
     return res.json({ message: "Course deleted" });
   } catch (error) {
     return res.status(500).json({ message: "Failed to delete course", error: error.message });
   }
 });
 
-router.put("/companies/:id/approve", (req, res) => {
+router.put("/companies/:id/approve", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const company = db.data.companies.find((item) => item.id === req.params.id);
     if (!company) {
       return res.status(404).json({ message: "Company not found" });
     }
     company.status = "approved";
-    db.write();
+    await db.write();
     return res.json({ message: "Company approved" });
   } catch (error) {
     return res.status(500).json({ message: "Failed to approve company", error: error.message });
   }
 });
 
-router.put("/companies/:id/reject", (req, res) => {
+router.put("/companies/:id/reject", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const company = db.data.companies.find((item) => item.id === req.params.id);
     if (!company) {
       return res.status(404).json({ message: "Company not found" });
     }
     company.status = "rejected";
-    db.write();
+    await db.write();
     return res.json({ message: "Company rejected" });
   } catch (error) {
     return res.status(500).json({ message: "Failed to reject company", error: error.message });

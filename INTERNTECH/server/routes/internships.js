@@ -10,16 +10,16 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 }
 });
 
-router.get("/", (_req, res) => {
+router.get("/", async (_req, res) => {
   try {
-    db.read();
+    await db.read();
     return res.json(db.data.internships);
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch internships", error: error.message });
   }
 });
 
-router.post("/apply", verifyToken, requireRole("student"), upload.single("resumeFile"), (req, res) => {
+router.post("/apply", verifyToken, requireRole("student"), upload.single("resumeFile"), async (req, res) => {
   try {
     const {
       trackId,
@@ -34,7 +34,7 @@ router.post("/apply", verifyToken, requireRole("student"), upload.single("resume
       whyYou
     } = req.body;
 
-    db.read();
+    await db.read();
     const track = db.data.internships.find((item) => item.id === trackId || item.slug === trackId);
 
     if (!track) {
@@ -69,7 +69,7 @@ router.post("/apply", verifyToken, requireRole("student"), upload.single("resume
     };
 
     db.data.internshipApplications.push(application);
-    db.write();
+    await db.write();
 
     return res.status(201).json({ message: "Application submitted successfully", application });
   } catch (error) {

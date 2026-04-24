@@ -15,7 +15,7 @@ function buildLast90DaysHeatmap(events, userId) {
       dateMap.set(dateKey, (dateMap.get(dateKey) || 0) + 1);
     });
 
-  return Array.from({ length: 90 }, (_, index) => {
+  return Array.from({ length: 90 }, async (_, index) => {
     const date = new Date();
     date.setHours(0, 0, 0, 0);
     date.setDate(date.getDate() - (89 - index));
@@ -28,9 +28,9 @@ function buildLast90DaysHeatmap(events, userId) {
   });
 }
 
-router.get("/student", verifyToken, requireRole("student"), (req, res) => {
+router.get("/student", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const enrollments = db.data.enrollments.filter((item) => item.studentId === req.user.id);
     const attempts = db.data.quizAttempts.filter((item) => item.studentId === req.user.id);
     const certificates = db.data.certificates.filter((item) => item.studentId === req.user.id);
@@ -88,9 +88,9 @@ router.get("/student", verifyToken, requireRole("student"), (req, res) => {
   }
 });
 
-router.post("/log-activity", verifyToken, requireRole("student"), (req, res) => {
+router.post("/log-activity", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    db.read();
+    await db.read();
     db.data.analyticsEvents ||= [];
     db.data.analyticsEvents.push({
       id: uuidv4(),
@@ -98,7 +98,7 @@ router.post("/log-activity", verifyToken, requireRole("student"), (req, res) => 
       type: req.body.type,
       createdAt: new Date().toISOString()
     });
-    db.write();
+    await db.write();
     return res.json({ message: "Activity logged" });
   } catch (error) {
     return res.status(500).json({ message: "Failed to log activity", error: error.message });

@@ -5,9 +5,9 @@ import { requireRole, verifyToken } from "../middleware/auth.js";
 
 const router = Router();
 
-router.get("/course/:courseId", verifyToken, requireRole("student"), (req, res) => {
+router.get("/course/:courseId", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const course = db.data.courses.find((item) => item.id === req.params.courseId || item.slug === req.params.courseId);
 
     if (!course) {
@@ -56,10 +56,10 @@ router.get("/course/:courseId", verifyToken, requireRole("student"), (req, res) 
   }
 });
 
-router.post("/submit", verifyToken, requireRole("student"), (req, res) => {
+router.post("/submit", verifyToken, requireRole("student"), async (req, res) => {
   try {
     const { courseId, answers, tabSwitchCount = 0, autoSubmitted = false } = req.body;
-    db.read();
+    await db.read();
 
     const course = db.data.courses.find((item) => item.id === courseId || item.slug === courseId);
     if (!course) {
@@ -126,7 +126,7 @@ router.post("/submit", verifyToken, requireRole("student"), (req, res) => {
     };
 
     db.data.quizAttempts.push(attempt);
-    db.write();
+    await db.write();
 
     return res.json({
       score,
@@ -141,9 +141,9 @@ router.post("/submit", verifyToken, requireRole("student"), (req, res) => {
   }
 });
 
-router.get("/attempts/:courseId", verifyToken, requireRole("student"), (req, res) => {
+router.get("/attempts/:courseId", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const course = db.data.courses.find((item) => item.id === req.params.courseId || item.slug === req.params.courseId);
     if (!course) {
       return res.status(404).json({ message: "Course not found" });

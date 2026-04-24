@@ -6,9 +6,9 @@ import { sendWithdrawalEmail } from "../utils/emailService.js";
 
 const router = Router();
 
-router.get("/history", verifyToken, requireRole("student"), (req, res) => {
+router.get("/history", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const history = db.data.walletHistory.filter((item) => item.userId === req.user.id);
     return res.json(history);
   } catch (error) {
@@ -20,7 +20,7 @@ router.post("/withdraw", verifyToken, requireRole("student"), async (req, res) =
   try {
     const { accountName, bankName, accountNumber, ifsc, upiId, amount } = req.body;
     const numericAmount = Number(amount);
-    db.read();
+    await db.read();
 
     const user = db.data.users.find((item) => item.id === req.user.id);
     if (!user) {
@@ -59,7 +59,7 @@ router.post("/withdraw", verifyToken, requireRole("student"), async (req, res) =
       description: "Withdrawal request placed",
       timestamp: new Date().toISOString()
     });
-    db.write();
+    await db.write();
 
     await sendWithdrawalEmail(user.email, user.name, numericAmount, "pending");
 
@@ -69,9 +69,9 @@ router.post("/withdraw", verifyToken, requireRole("student"), async (req, res) =
   }
 });
 
-router.get("/withdrawals", verifyToken, requireRole("student"), (req, res) => {
+router.get("/withdrawals", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const requests = db.data.withdrawalRequests.filter((item) => item.studentId === req.user.id);
     return res.json(requests);
   } catch (error) {

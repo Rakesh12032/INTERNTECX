@@ -8,7 +8,7 @@ const router = Router();
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    db.read();
+    await db.read();
     const college = db.data.colleges.find((item) => item.email === email?.toLowerCase());
 
     if (!college) {

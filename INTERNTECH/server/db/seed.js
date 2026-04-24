@@ -285,7 +285,7 @@ function buildQuizQuestions(course) {
 }
 
 async function seed() {
-  db.read();
+  await db.read();
   db.data = structuredClone(defaultData);
 
   const adminPassword = await bcrypt.hash("Admin@123", 12);
@@ -521,7 +521,7 @@ async function seed() {
     }
   ];
 
-  db.write();
+  await db.write();
   console.log("InternTech database seeded successfully.");
   console.log("Admin Login: admin@interntech.in / Admin@123");
   console.log("Test Student: student@test.com / Test@123");

@@ -10,7 +10,7 @@ const router = Router();
 router.post("/register", async (req, res) => {
   try {
     const { companyName, email, password, location } = req.body;
-    db.read();
+    await db.read();
 
     const existing = db.data.companies.find((item) => item.email === email?.toLowerCase());
     if (existing) {
@@ -28,7 +28,7 @@ router.post("/register", async (req, res) => {
       jobs: [],
       createdAt: new Date().toISOString()
     });
-    db.write();
+    await db.write();
 
     return res.status(201).json({ message: "Company registration submitted for approval" });
   } catch (error) {
@@ -39,7 +39,7 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    db.read();
+    await db.read();
     const company = db.data.companies.find((item) => item.email === email?.toLowerCase());
 
     if (!company) {
@@ -76,9 +76,9 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.get("/jobs", verifyToken, requireRole("company"), (req, res) => {
+router.get("/jobs", verifyToken, requireRole("company"), async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const jobs = db.data.jobs.filter((item) => item.companyId === req.user.id);
     return res.json(jobs);
   } catch (error) {
@@ -86,9 +86,9 @@ router.get("/jobs", verifyToken, requireRole("company"), (req, res) => {
   }
 });
 
-router.get("/applicants", verifyToken, requireRole("company"), (req, res) => {
+router.get("/applicants", verifyToken, requireRole("company"), async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const jobs = db.data.jobs.filter((item) => item.companyId === req.user.id).map((item) => item.id);
     const applicants = db.data.jobApplications.filter((item) => jobs.includes(item.jobId));
     return res.json(applicants);
@@ -97,9 +97,9 @@ router.get("/applicants", verifyToken, requireRole("company"), (req, res) => {
   }
 });
 
-router.put("/applicants/:id", verifyToken, requireRole("company"), (req, res) => {
+router.put("/applicants/:id", verifyToken, requireRole("company"), async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const application = db.data.jobApplications.find((item) => item.id === req.params.id);
 
     if (!application) {
@@ -116,7 +116,7 @@ router.put("/applicants/:id", verifyToken, requireRole("company"), (req, res) =>
 
     application.status = req.body.status || application.status;
     application.updatedAt = new Date().toISOString();
-    db.write();
+    await db.write();
 
     return res.json({ message: "Application updated", application });
   } catch (error) {
@@ -124,10 +124,10 @@ router.put("/applicants/:id", verifyToken, requireRole("company"), (req, res) =>
   }
 });
 
-router.post("/jobs", verifyToken, requireRole("company"), (req, res) => {
+router.post("/jobs", verifyToken, requireRole("company"), async (req, res) => {
   try {
     const { role, location, experience, salary, description } = req.body;
-    db.read();
+    await db.read();
     const company = db.data.companies.find((item) => item.id === req.user.id);
     if (!company) {
       return res.status(404).json({ message: "Company not found" });
@@ -149,7 +149,7 @@ router.post("/jobs", verifyToken, requireRole("company"), (req, res) => {
     };
 
     db.data.jobs.push(job);
-    db.write();
+    await db.write();
     return res.status(201).json({ message: "Job posted successfully", job });
   } catch (error) {
     return res.status(500).json({ message: "Failed to post job", error: error.message });

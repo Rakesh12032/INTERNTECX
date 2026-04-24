@@ -5,9 +5,9 @@ import { v4 as uuidv4 } from "uuid";
 
 const router = Router();
 
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const { category, level, duration, featured, limit, page = 1 } = req.query;
     let courses = [...db.data.courses];
 
@@ -48,9 +48,9 @@ router.get("/", (req, res) => {
   }
 });
 
-router.get("/my", verifyToken, requireRole("student"), (req, res) => {
+router.get("/my", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    db.read();
+    await db.read();
 
     const enrollments = db.data.enrollments
       .filter((item) => item.studentId === req.user.id)
@@ -74,9 +74,9 @@ router.get("/my", verifyToken, requireRole("student"), (req, res) => {
   }
 });
 
-router.get("/:id", (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const course = db.data.courses.find((item) => item.id === req.params.id || item.slug === req.params.id);
 
     if (!course) {
@@ -93,10 +93,10 @@ router.get("/:id", (req, res) => {
   }
 });
 
-router.post("/enroll", verifyToken, requireRole("student"), (req, res) => {
+router.post("/enroll", verifyToken, requireRole("student"), async (req, res) => {
   try {
     const { courseId } = req.body;
-    db.read();
+    await db.read();
 
     const course = db.data.courses.find((item) => item.id === courseId || item.slug === courseId);
     if (!course) {
@@ -123,7 +123,7 @@ router.post("/enroll", verifyToken, requireRole("student"), (req, res) => {
 
     db.data.enrollments.push(enrollment);
     course.enrolledCount = (course.enrolledCount || 0) + 1;
-    db.write();
+    await db.write();
 
     return res.status(201).json({ message: "Enrollment successful", enrollmentId: enrollment.id });
   } catch (error) {
@@ -131,9 +131,9 @@ router.post("/enroll", verifyToken, requireRole("student"), (req, res) => {
   }
 });
 
-router.get("/:id/progress", verifyToken, (req, res) => {
+router.get("/:id/progress", verifyToken, async (req, res) => {
   try {
-    db.read();
+    await db.read();
     const course = db.data.courses.find((item) => item.id === req.params.id || item.slug === req.params.id);
 
     if (!course) {
@@ -157,10 +157,10 @@ router.get("/:id/progress", verifyToken, (req, res) => {
   }
 });
 
-router.post("/lesson/complete", verifyToken, requireRole("student"), (req, res) => {
+router.post("/lesson/complete", verifyToken, requireRole("student"), async (req, res) => {
   try {
     const { courseId, lessonId } = req.body;
-    db.read();
+    await db.read();
 
     const course = db.data.courses.find((item) => item.id === courseId || item.slug === courseId);
     if (!course) {
@@ -182,7 +182,7 @@ router.post("/lesson/complete", verifyToken, requireRole("student"), (req, res) 
     enrollment.progress = Math.min(100, Math.round((enrollment.completedLessons.length / totalLessons) * 100));
     enrollment.quizUnlocked = enrollment.progress === 100;
     enrollment.updatedAt = new Date().toISOString();
-    db.write();
+    await db.write();
 
     return res.json({
       message: "Lesson marked complete",
