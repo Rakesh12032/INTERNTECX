@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: "https://interntecx-ej2a.vercel.app/api",
   timeout: 15000
 });
 
