@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 
-export default function StatsCounter({ target = 0, suffix = "", label }) {
+export default function StatsCounter({ target = 0, suffix = "", label, icon: Icon }) {
   const [count, setCount] = useState(0);
   const [started, setStarted] = useState(false);
   const ref = useRef(null);
@@ -37,12 +37,20 @@ export default function StatsCounter({ target = 0, suffix = "", label }) {
   }, [started, target]);
 
   return (
-    <div ref={ref} className="rounded-3xl border border-white/10 bg-white/5 p-6 text-center">
-      <p className="text-4xl font-bold text-white">
+    <div
+      ref={ref}
+      className="group rounded-3xl border border-white/15 bg-gradient-to-br from-white/10 to-white/5 p-6 text-center shadow-lg backdrop-blur transition duration-300 hover:-translate-y-1 hover:shadow-cyan/20"
+    >
+      {Icon ? (
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan/40 to-blue/40 text-white ring-1 ring-white/20 transition group-hover:scale-110">
+          <Icon className="h-6 w-6" />
+        </div>
+      ) : null}
+      <p className="mt-4 text-4xl font-bold text-white">
         {count}
         {suffix}
       </p>
-      <p className="mt-2 text-sm text-slate-300">{label}</p>
+      <p className="mt-2 text-sm font-medium text-slate-200">{label}</p>
     </div>
   );
 }
