@@ -6,8 +6,8 @@ export function generateOTP() {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
 
-export function saveOTP(email, otp) {
-  db.read();
+export async function saveOTP(email, otp) {
+  await db.read();
   const filtered = db.data.otps.filter((item) => item.email !== email);
   filtered.push({
     id: `${email}-${Date.now()}`,
@@ -17,11 +17,11 @@ export function saveOTP(email, otp) {
     createdAt: new Date().toISOString()
   });
   db.data.otps = filtered;
-  db.write();
+  await db.write();
 }
 
-export function verifyOTP(email, otp) {
-  db.read();
+export async function verifyOTP(email, otp) {
+  await db.read();
   const entry = db.data.otps.find((item) => item.email === email && item.otp === otp);
 
   if (!entry) {
@@ -30,15 +30,15 @@ export function verifyOTP(email, otp) {
 
   if (entry.expiresAt < Date.now()) {
     db.data.otps = db.data.otps.filter((item) => item.email !== email);
-    db.write();
+    await db.write();
     return false;
   }
 
   return true;
 }
 
-export function deleteOTP(email) {
-  db.read();
+export async function deleteOTP(email) {
+  await db.read();
   db.data.otps = db.data.otps.filter((item) => item.email !== email);
-  db.write();
+  await db.write();
 }
