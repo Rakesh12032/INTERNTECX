@@ -58,7 +58,7 @@ export default function Verify() {
     <div className="mx-auto max-w-4xl px-4 py-16">
       <div className="rounded-[36px] border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <p className="text-sm font-semibold uppercase tracking-[0.28em] text-blue">Certificate Verification</p>
-        <h1 className="mt-3 text-4xl font-bold">Verify an InternTech certificate</h1>
+        <h1 className="mt-3 text-4xl font-bold">Verify an Interntex certificate</h1>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <input value={certId} onChange={(event) => setCertId(event.target.value)} placeholder="Enter certificate ID" className="flex-1 rounded-2xl border border-slate-200 px-4 py-4 outline-none focus:border-blue dark:border-slate-700 dark:bg-slate-950" />
           <button type="button" onClick={() => verifyCertificate()} className="rounded-2xl bg-blue px-6 py-4 text-sm font-semibold text-white transition hover:bg-navy">
@@ -79,7 +79,7 @@ export default function Verify() {
                 </div>
                 <div className="mt-6 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Authentic and issued by InternTech</p>
+                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Authentic and issued by Interntex</p>
                     <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">This certificate record matches the platform verification database.</p>
                   </div>
                   <div className="rounded-2xl bg-white p-3 shadow-sm dark:bg-slate-900">

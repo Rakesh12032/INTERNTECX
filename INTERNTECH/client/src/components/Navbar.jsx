@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { Menu, Moon, Sun, Wallet, X } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
@@ -17,6 +17,8 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { isDarkMode, toggleTheme } = useTheme();
   const { isAuthenticated, user, logout } = useAuth();
+  const location = useLocation();
+  const isHome = location.pathname === "/";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -26,7 +28,7 @@ export default function Navbar() {
   }, []);
 
   return (
-    <header className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? "border-b border-slate-200/10 bg-navy/90 backdrop-blur-xl" : "bg-transparent"}`}>
+    <header className={`fixed top-0 z-50 w-full transition-all duration-300 ${scrolled ? "border-b border-slate-200/10 bg-navy/90 backdrop-blur-xl py-2" : isHome ? "bg-transparent py-4" : "bg-navy py-4"}`}>
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <Link to="/" className="flex items-center gap-3">
           <img src="/interntex-logo.png" alt="interntex" className="h-11 w-auto rounded-xl bg-white p-1 shadow-lg shadow-blue/20" />
@@ -38,7 +40,7 @@ export default function Navbar() {
 
         <nav className="hidden items-center gap-7 md:flex">
           {navItems.map((item) => (
-            <NavLink key={item.to} to={item.to} className={({ isActive }) => `text-sm font-medium transition hover:text-cyan ${isActive ? "text-blue" : "text-slate-200"}`}>
+            <NavLink key={item.to} to={item.to} className={({ isActive }) => `text-sm font-medium transition hover:text-cyan ${isActive ? "text-cyan" : "text-slate-200"}`}>
               {item.label}
             </NavLink>
           ))}

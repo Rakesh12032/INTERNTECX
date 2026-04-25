@@ -7,7 +7,7 @@ import api from "../utils/api";
 import { useAuth } from "../context/AuthContext";
 
 const benefits = [
-  ["Campus leadership", Megaphone, "Represent InternTech in your college and build visible credibility."],
+  ["Campus leadership", Megaphone, "Represent Interntex in your college and build visible credibility."],
   ["Referral earnings", Gift, "Grow your wallet by helping students discover valuable learning paths."],
   ["Verified recognition", ShieldCheck, "Stand out through leaderboard visibility and ambassador status."],
   ["Network growth", Users, "Connect with peers, students, and opportunity-seeking communities."],
@@ -70,7 +70,7 @@ export default function Ambassador() {
         <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan">Campus Ambassador Program</p>
         <h1 className="mt-4 text-5xl font-bold">Lead your campus. Grow your network. Earn rewards.</h1>
         <p className="mt-5 max-w-2xl text-lg text-slate-100">
-          Represent InternTech, help students discover quality opportunities, and build your personal brand while earning recognition.
+          Represent Interntex, help students discover quality opportunities, and build your personal brand while earning recognition.
         </p>
       </section>
 
@@ -92,7 +92,7 @@ export default function Ambassador() {
           <div className="mt-6 grid gap-4">
             {[
               ["Apply with your student profile and social links."],
-              ["Get reviewed by InternTech admin."],
+              ["Get reviewed by Interntex admin."],
               ["Share the platform, grow referrals, and build your presence."]
             ].map((step, index) => (
               <div key={index} className="rounded-2xl bg-slate-50 px-5 py-4 dark:bg-slate-950">
@@ -108,13 +108,13 @@ export default function Ambassador() {
             <>
               <h2 className="text-3xl font-bold">Apply Now</h2>
               <p className="mt-3 text-slate-600 dark:text-slate-400">
-                If approved, you will join the ambassador leaderboard and help your campus access InternTech courses and internships.
+                If approved, you will join the ambassador leaderboard and help your campus access Interntex courses and internships.
               </p>
               <form onSubmit={handleSubmit(onSubmit)} className="mt-8 grid gap-5">
                 <input {...register("instagram")} placeholder="Instagram profile URL" className="rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-blue dark:border-slate-700 dark:bg-slate-950" />
                 <input {...register("linkedin")} placeholder="LinkedIn profile URL" className="rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-blue dark:border-slate-700 dark:bg-slate-950" />
                 <input {...register("monthlyReferrals")} placeholder="Expected monthly referrals" className="rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-blue dark:border-slate-700 dark:bg-slate-950" />
-                <textarea {...register("reason")} rows="5" placeholder="Why do you want to become an InternTech ambassador?" className="rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-blue dark:border-slate-700 dark:bg-slate-950" />
+                <textarea {...register("reason")} rows="5" placeholder="Why do you want to become an Interntex ambassador?" className="rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-blue dark:border-slate-700 dark:bg-slate-950" />
                 <button type="submit" disabled={submitting} className="rounded-2xl bg-blue px-4 py-4 text-sm font-semibold text-white transition hover:bg-navy disabled:opacity-70">
                   {submitting ? "Submitting..." : `Apply as ${user?.name?.split(" ")[0] || "Ambassador"}`}
                 </button>
@@ -131,7 +131,7 @@ export default function Ambassador() {
             <div className="rounded-3xl border border-success bg-success/10 p-6">
               <h2 className="text-3xl font-bold text-success">You are an approved ambassador</h2>
               <p className="mt-3 text-slate-600 dark:text-slate-300">
-                Keep sharing InternTech on campus and help more students discover courses, internships, and career opportunities.
+                Keep sharing Interntex on campus and help more students discover courses, internships, and career opportunities.
               </p>
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-2xl bg-white/70 p-4 dark:bg-slate-900/40">

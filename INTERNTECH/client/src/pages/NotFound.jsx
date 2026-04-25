@@ -10,7 +10,7 @@ export default function NotFound() {
         <p className="mt-8 font-heading text-8xl font-bold text-blue md:text-9xl">404</p>
         <h1 className="mt-4 text-3xl font-bold md:text-4xl">Oops! This page does not exist.</h1>
         <p className="mt-4 text-slate-600 dark:text-slate-400">
-          The link may be outdated, or this module is still being prepared inside InternTech.
+          The link may be outdated, or this module is still being prepared inside Interntex.
         </p>
         <Link
           to="/"

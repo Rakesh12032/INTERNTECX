@@ -59,7 +59,7 @@ export default function Footer() {
       </div>
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between lg:px-8">
-          <p>© 2025 InternTech. All rights reserved.</p>
+          <p>© 2025 Interntex. All rights reserved.</p>
           <div className="flex gap-4">
             <span>Privacy</span>
             <span>Terms</span>

@@ -8,7 +8,7 @@ export default function PageLoader() {
           <div className="absolute inset-0 animate-ping rounded-full border-4 border-blue opacity-20"></div>
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-blue dark:border-slate-800 dark:border-t-blue"></div>
         </div>
-        <p className="animate-pulse text-sm font-medium text-slate-500 dark:text-slate-400">Loading InternTech...</p>
+        <p className="animate-pulse text-sm font-medium text-slate-500 dark:text-slate-400">Loading Interntex...</p>
       </div>
     </div>
   );

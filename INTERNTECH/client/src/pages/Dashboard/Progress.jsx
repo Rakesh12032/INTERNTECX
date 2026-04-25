@@ -60,7 +60,7 @@ export default function Progress() {
       setReportLoading(true);
       const doc = new jsPDF();
       doc.setFontSize(22);
-      doc.text("InternTech Progress Report", 20, 20);
+      doc.text("Interntex Progress Report", 20, 20);
       doc.setFontSize(11);
       doc.text(`Generated on: ${new Date().toLocaleString("en-IN")}`, 20, 30);
       doc.text(`Lessons Completed: ${data.totalLessonsCompleted}`, 20, 48);
@@ -88,7 +88,7 @@ export default function Progress() {
         doc.text("No badges earned yet.", 24, afterCoursesY + 10);
       }
 
-      doc.save("interntech-progress-report.pdf");
+      doc.save("Interntex-progress-report.pdf");
     } finally {
       setReportLoading(false);
     }

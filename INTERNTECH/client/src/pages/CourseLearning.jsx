@@ -4,14 +4,10 @@ import toast from "react-hot-toast";
 import { Link, useParams } from "react-router-dom";
 import api from "../utils/api";
 import { generateCertificatePDF } from "../utils/generateCertificate";
+import { mockCourses } from "../utils/mockData";
 
 function progressWidth(value) {
-  if (value >= 100) return "w-full";
-  if (value >= 80) return "w-4/5";
-  if (value >= 60) return "w-3/5";
-  if (value >= 40) return "w-2/5";
-  if (value >= 20) return "w-1/5";
-  return "w-[8%]";
+  return { width: `${value || 0}%` };
 }
 
 export default function CourseLearning() {
@@ -43,7 +39,17 @@ export default function CourseLearning() {
         const firstLesson = courseResponse.data.modules?.[0]?.lessons?.[0];
         setActiveLessonId(firstLesson?.id || null);
       } catch (_error) {
-        setCourse(null);
+        // Fallback to mock data
+        const mockCourse = mockCourses.find((c) => c.id === courseId || c.slug === courseId);
+        if (mockCourse) {
+          setCourse(mockCourse);
+          setProgress({ completedLessons: [], progress: 0, quizUnlocked: false });
+          const firstLesson = mockCourse.modules?.[0]?.lessons?.[0];
+          setActiveLessonId(firstLesson?.id || null);
+          setCertificate(null);
+        } else {
+          setCourse(null);
+        }
       }
     };
 
@@ -67,25 +73,45 @@ export default function CourseLearning() {
     try {
       setMarking(true);
 
-      const response = await api.post("/courses/lesson/complete", {
-        courseId: course.id,
-        lessonId: activeLesson.id
-      });
+      try {
+        const response = await api.post("/courses/lesson/complete", {
+          courseId: course.id,
+          lessonId: activeLesson.id
+        });
 
-      await api.post("/analytics/log-activity", {
-        type: "lesson_complete"
-      });
+        await api.post("/analytics/log-activity", {
+          type: "lesson_complete"
+        });
 
-      setProgress((previous) => ({
-        ...previous,
-        completedLessons: [...new Set([...(previous?.completedLessons || []), activeLesson.id])],
-        progress: response.data.progress,
-        quizUnlocked: response.data.quizUnlocked
-      }));
+        setProgress((previous) => ({
+          ...previous,
+          completedLessons: [...new Set([...(previous?.completedLessons || []), activeLesson.id])],
+          progress: response.data.progress,
+          quizUnlocked: response.data.quizUnlocked
+        }));
 
-      toast.success("Lesson marked complete");
+        toast.success("Lesson marked complete");
+      } catch (apiError) {
+        // Offline Fallback Logic
+        setProgress((previous) => {
+          const prevCompleted = previous?.completedLessons || [];
+          const newCompleted = [...new Set([...prevCompleted, activeLesson.id])];
+          const progressPercent = Math.round((newCompleted.length / lessons.length) * 100);
+          const quizUnlocked = progressPercent === 100;
+          
+          if (quizUnlocked) toast.success("🎉 All lessons done! Quiz unlocked.");
+          else toast.success("Lesson marked complete!");
+          
+          return {
+            ...previous,
+            completedLessons: newCompleted,
+            progress: progressPercent,
+            quizUnlocked
+          };
+        });
+      }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Unable to mark complete");
+      toast.error("Unable to mark complete");
     } finally {
       setMarking(false);
     }
@@ -104,38 +130,60 @@ export default function CourseLearning() {
   const completedLessons = progress?.completedLessons || [];
 
   return (
-    <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 lg:grid-cols-[320px_1fr] lg:px-8">
-      <aside className="rounded-3xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
-        <h2 className="text-2xl font-bold">{course.title}</h2>
-        <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
-          {completedLessons.length}/{lessons.length} lessons complete
-        </p>
-        <div className="mt-4 h-3 rounded-full bg-slate-200 dark:bg-slate-800">
-          <div className={`h-3 rounded-full bg-blue ${progressWidth(progress?.progress || 0)}`} />
+    <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 lg:grid-cols-[340px_1fr] lg:px-8">
+      <aside className="h-fit rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 p-5 dark:from-slate-800/50 dark:to-slate-900">
+          <p className="text-xs font-bold uppercase tracking-wider text-blue dark:text-cyan">Progress Report</p>
+          <h2 className="mt-2 text-xl font-extrabold leading-tight text-slate-900 dark:text-white">{course.title}</h2>
+          
+          <div className="mt-6 flex items-end justify-between">
+            <div>
+              <p className="text-3xl font-black text-slate-900 dark:text-white">{progress?.progress || 0}%</p>
+              <p className="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">
+                {completedLessons.length} of {lessons.length} lessons completed
+              </p>
+            </div>
+          </div>
+          
+          <div className="mt-4 h-3 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+            <div className="h-full rounded-full bg-gradient-to-r from-blue to-cyan transition-all duration-700 ease-out" style={progressWidth(progress?.progress || 0)} />
+          </div>
         </div>
 
-        <div className="mt-6 space-y-4">
-          {course.modules.map((module) => (
+        <div className="mt-8 space-y-6">
+          {course.modules.map((module, index) => (
             <div key={module.id}>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue">
-                {module.title}
-              </p>
-              <div className="mt-3 space-y-2">
-                {module.lessons.map((lesson) => (
-                  <button
-                    key={lesson.id}
-                    type="button"
-                    onClick={() => setActiveLessonId(lesson.id)}
-                    className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left text-sm ${
-                      activeLesson?.id === lesson.id
-                        ? "bg-blue text-white"
-                        : "bg-slate-50 text-slate-700 dark:bg-slate-950 dark:text-slate-300"
-                    }`}
-                  >
-                    <span>{lesson.title}</span>
-                    <span>{completedLessons.includes(lesson.id) ? "Done" : lesson.duration}</span>
-                  </button>
-                ))}
+              <div className="flex items-center gap-3">
+                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue/10 text-xs font-bold text-blue dark:text-cyan">{index + 1}</div>
+                <p className="text-sm font-bold tracking-wide text-slate-900 dark:text-white">
+                  {module.title}
+                </p>
+              </div>
+              <div className="mt-3 ml-3 border-l-2 border-slate-100 pl-4 space-y-2 dark:border-slate-800">
+                {module.lessons.map((lesson) => {
+                  const isDone = completedLessons.includes(lesson.id);
+                  const isActive = activeLesson?.id === lesson.id;
+                  return (
+                    <button
+                      key={lesson.id}
+                      type="button"
+                      onClick={() => setActiveLessonId(lesson.id)}
+                      className={`group relative flex w-full flex-col items-start justify-center rounded-xl px-4 py-3 text-left text-sm transition-all duration-300 ${
+                        isActive
+                          ? "bg-blue text-white shadow-md shadow-blue/20"
+                          : "bg-transparent text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800/50"
+                      }`}
+                    >
+                      <div className="flex w-full items-center justify-between">
+                        <span className={`font-semibold ${isDone && !isActive ? "text-success" : ""}`}>{lesson.title}</span>
+                        {isDone ? (
+                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-[10px]">✓</span>
+                        ) : null}
+                      </div>
+                      <span className={`mt-1 text-xs font-medium ${isActive ? "text-blue-100" : "text-slate-400 dark:text-slate-500"}`}>{lesson.duration}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ))}
@@ -143,13 +191,37 @@ export default function CourseLearning() {
       </aside>
 
       <section className="rounded-3xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
-        <div className="overflow-hidden rounded-3xl">
-          <iframe
-            title={activeLesson.title}
-            src={activeLesson.videoUrl}
-            className="h-[360px] w-full rounded-3xl"
-            allowFullScreen
-          />
+        <div className="relative overflow-hidden rounded-3xl h-[360px] sm:h-[480px] bg-slate-900">
+          {(() => {
+            try {
+              const url = new URL(activeLesson.videoUrl);
+              url.searchParams.set("modestbranding", "1"); // Hide YouTube logo
+              url.searchParams.set("rel", "0"); // Hide related videos from other channels
+              url.searchParams.set("showinfo", "0"); // Hide video title
+              url.searchParams.set("iv_load_policy", "3"); // Hide annotations
+              return (
+                <iframe
+                  title={activeLesson.title}
+                  src={url.toString()}
+                  className="absolute top-0 left-0 h-full w-full border-none"
+                  allowFullScreen
+                  sandbox="allow-scripts allow-same-origin allow-presentation"
+                />
+              );
+            } catch (e) {
+              return (
+                <iframe
+                  title={activeLesson.title}
+                  src={activeLesson.videoUrl}
+                  className="absolute top-0 left-0 h-full w-full border-none"
+                  allowFullScreen
+                />
+              );
+            }
+          })()}
+          
+          {/* Invisible protective overlay to block clicking the top title/links to YouTube */}
+          <div className="absolute top-0 left-0 right-0 h-20 z-10 bg-transparent pointer-events-auto" onContextMenu={(e) => e.preventDefault()}></div>
         </div>
         <h1 className="mt-6 text-3xl font-bold">{activeLesson.title}</h1>
         <p className="mt-4 text-slate-600 dark:text-slate-400">{activeLesson.description}</p>

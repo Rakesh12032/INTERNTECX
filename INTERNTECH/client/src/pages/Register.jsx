@@ -122,7 +122,7 @@ export default function Register() {
     <div className="min-h-[calc(100vh-160px)] bg-slate-50 px-4 py-12 dark:bg-slate-950">
       <div className="mx-auto grid max-w-6xl overflow-hidden rounded-[36px] border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900 lg:grid-cols-[1.05fr_1fr]">
         <div className="hidden bg-gradient-to-br from-navy via-blue to-cyan p-10 text-white lg:block">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-cyan">InternTech Registration</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-cyan">Interntex Registration</p>
           <h1 className="mt-6 text-5xl font-bold leading-tight text-white">Join a platform built for learners who want outcomes.</h1>
           <p className="mt-6 max-w-md text-lg text-slate-100">Enroll in career-focused courses, apply for internships, earn verified certificates, and track everything from one dashboard.</p>
         </div>

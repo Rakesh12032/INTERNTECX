@@ -105,8 +105,8 @@ router.get("/verification-letter/:certId", async (req, res) => {
     return res.json({
       letterId: `VL-${certificate.certId}`,
       issuedAt: new Date().toISOString(),
-      organization: "InternTech",
-      statement: "This document confirms that the certificate listed below has been verified against InternTech records.",
+      organization: "Interntex",
+      statement: "This document confirms that the certificate listed below has been verified against Interntex records.",
       certificate
     });
   } catch (error) {

@@ -88,7 +88,7 @@ export default function ShareAndEarn() {
       <section className="rounded-[32px] bg-gradient-to-r from-gold via-amber-400 to-orange-400 p-8 text-navy">
         <p className="text-sm font-semibold uppercase tracking-[0.24em]">Share and Earn</p>
         <h1 className="mt-3 text-4xl font-bold">{referralData.referralCode}</h1>
-        <p className="mt-4 max-w-2xl text-base">Invite your friends to InternTech and earn 199 rupees for each successful referral payment.</p>
+        <p className="mt-4 max-w-2xl text-base">Invite your friends to Interntex and earn 199 rupees for each successful referral payment.</p>
         <div className="mt-6 flex flex-wrap gap-3">
           <button type="button" onClick={() => handleCopy(referralData.referralCode, "Referral code")} className="rounded-2xl bg-navy px-5 py-3 text-sm font-semibold text-white">
             Copy Code

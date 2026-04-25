@@ -12,7 +12,7 @@ cloudinary.config({
 export const cloudinaryStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: "interntech/resumes", // Folder name in Cloudinary
+    folder: "interntex/resumes", // Folder name in Cloudinary
     allowed_formats: ["pdf", "doc", "docx", "png", "jpg", "jpeg"],
     resource_type: "auto", // Allows non-image files like PDFs
     public_id: (req, file) => {
@@ -25,7 +25,7 @@ export const cloudinaryStorage = new CloudinaryStorage({
 export const generalCloudinaryStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: "interntech/uploads",
+    folder: "interntex/uploads",
     allowed_formats: ["png", "jpg", "jpeg", "webp"],
     public_id: (req, file) => {
       return `${Date.now()}-${file.originalname.replace(/\.\w+$/, "").replace(/\s+/g, "-").toLowerCase()}`;

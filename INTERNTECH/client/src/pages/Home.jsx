@@ -25,7 +25,7 @@ const testimonials = [
     name: "Ananya Singh",
     college: "NIT Patna",
     city: "Patna",
-    quote: "InternTech helped me go from confusion to clarity. The course flow and internship structure felt practical from day one."
+    quote: "Interntex helped me go from confusion to clarity. The course flow and internship structure felt practical from day one."
   },
   {
     name: "Shivam Raj",
@@ -49,7 +49,7 @@ const testimonials = [
     name: "Ritika Sinha",
     college: "MMMUT Gorakhpur",
     city: "Gorakhpur",
-    quote: "InternTech made learning feel career-focused. I got exposed to projects, quizzes, and actual opportunities in one place."
+    quote: "Interntex made learning feel career-focused. I got exposed to projects, quizzes, and actual opportunities in one place."
   }
 ];
 
@@ -63,12 +63,6 @@ const features = [
 ];
 
 const companyNames = ["TCS", "Infosys", "Wipro", "Razorpay", "Zomato", "Paytm", "Freshworks", "BrowserStack"];
-const heroParticles = Array.from({ length: 20 }, (_, index) => ({
-  id: index,
-  left: `${(index * 37) % 100}%`,
-  delay: `${(index % 8) * 0.7}s`,
-  duration: `${8 + (index % 5)}s`
-}));
 
 export default function Home() {
   const [courses, setCourses] = useState([]);
@@ -105,76 +99,89 @@ export default function Home() {
 
   return (
     <div className="bg-slate-50 dark:bg-slate-950">
-      <section className="hero-gradient relative overflow-hidden text-white">
+      <section className="mesh-gradient relative overflow-hidden text-white">
         <div className="pointer-events-none absolute inset-0">
-          {heroParticles.map((particle) => (
-            <span
-              key={particle.id}
-              className="hero-particle"
-              style={{ left: particle.left, animationDelay: particle.delay, animationDuration: particle.duration }}
-            />
-          ))}
+          <div className="animate-orb-pulse absolute -left-20 top-20 h-96 w-96 rounded-full bg-blue/30 blur-3xl"></div>
+          <div className="animate-orb-pulse absolute -right-20 top-40 h-96 w-96 rounded-full bg-cyan/20 blur-3xl" style={{ animationDelay: "2s" }}></div>
         </div>
-        <div className="mx-auto grid min-h-[92vh] max-w-7xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8">
-          <div className="scroll-fade-up">
-            <div className="inline-flex rounded-full border border-cyan/30 bg-cyan/10 px-4 py-2 text-sm font-semibold text-cyan">
+        <div className="mx-auto grid min-h-[95vh] max-w-7xl gap-12 px-4 pb-20 pt-32 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8">
+          <div className="scroll-fade-up z-10">
+            <div className="inline-flex rounded-full border border-cyan/40 bg-cyan/10 px-4 py-2 text-sm font-semibold text-cyan shadow-[0_0_15px_rgba(6,182,212,0.3)]">
               #1 Internship Platform in Bihar
             </div>
-            <h1 className="mt-6 text-5xl font-bold leading-tight text-white sm:text-6xl">
-              Launch Your Tech Career with interntex
+            <h1 className="mt-6 text-5xl font-extrabold leading-tight text-white drop-shadow-lg sm:text-6xl md:text-[4rem]">
+              Launch Your Tech Career with <span className="bg-gradient-to-r from-cyan to-blue bg-clip-text text-transparent drop-shadow-md">interntex</span>
             </h1>
-            <p className="mt-5 max-w-xl text-xl text-slate-300">
-              Real Internships. Verified Certificates. Dream Jobs.
+            <p className="mt-6 max-w-xl text-xl text-slate-200 drop-shadow-sm">
+              Real Internships. Verified Certificates. Dream Jobs. Experience the most dynamic learning ecosystem.
             </p>
-            <div className="mt-8 flex flex-wrap gap-4">
-              <Link to="/courses" className="glow-button inline-flex items-center gap-2 rounded-full bg-blue px-6 py-4 text-sm font-semibold text-white transition hover:-translate-y-1 hover:bg-blue/90">
-                Explore Courses <ArrowRight className="h-4 w-4" />
+            <div className="mt-10 flex flex-wrap gap-4">
+              <Link to="/courses" className="glow-button inline-flex items-center gap-2 rounded-full bg-cyan px-8 py-4 text-base font-bold text-navy transition hover:-translate-y-1 hover:bg-cyan/90">
+                Explore Courses <ArrowRight className="h-5 w-5" />
               </Link>
-              <Link to="/internship" className="rounded-full border border-white/30 px-6 py-4 text-sm font-semibold text-white transition duration-300 hover:-translate-y-1 hover:bg-white hover:text-navy">
+              <Link to="/internship" className="rounded-full border-2 border-white/30 bg-white/5 px-8 py-4 text-base font-bold text-white backdrop-blur-sm transition duration-300 hover:-translate-y-1 hover:bg-white hover:text-navy">
                 Apply for Internship
               </Link>
             </div>
-            <div className="mt-10 grid grid-cols-3 gap-4 text-sm">
+            <div className="mt-12 grid grid-cols-3 gap-6 text-sm">
               {[
                 ["500+", "Students", GraduationCap],
                 ["20+", "Courses", Sparkles],
                 ["45+", "Hiring Companies", Building2]
               ].map(([value, label, Icon]) => (
-                <div key={label} className="group rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur transition hover:-translate-y-1 hover:bg-white/15">
-                  <Icon className="h-4 w-4 text-cyan transition group-hover:scale-110" />
-                  <p className="text-2xl font-bold text-gold">{value}</p>
+                <div key={label} className="group rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:bg-white/10 hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                  <Icon className="h-5 w-5 text-cyan transition group-hover:scale-110" />
+                  <p className="mt-2 text-2xl font-bold text-white drop-shadow-md">{value}</p>
                   <p className="mt-1 text-slate-300">{label}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="relative scroll-fade-up">
-            <div className="certificate-shell mx-auto max-w-md rounded-[34px] p-[2px] shadow-2xl shadow-gold/20">
-              <div className="relative overflow-hidden rounded-[32px] bg-white/95 p-7 text-slate-900 backdrop-blur-xl">
-                <div className="absolute inset-0 certificate-ornament opacity-40" />
-                <div className="absolute right-4 top-4 rounded-full border border-gold/40 bg-gold/10 p-2">
-                  <ShieldCheck className="h-5 w-5 text-gold" />
+          <div className="relative z-10 scroll-fade-up lg:ml-auto">
+            {/* Floating Pills */}
+            <div className="animate-float-fast absolute -left-8 -top-8 z-20 hidden items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 shadow-2xl backdrop-blur-xl sm:flex">
+              <ShieldCheck className="h-6 w-6 text-cyan" />
+              <div>
+                <p className="text-xs font-semibold text-slate-300">Verified By</p>
+                <p className="text-sm font-bold text-white">Top Tech Firms</p>
+              </div>
+            </div>
+
+            <div className="animate-float-slow absolute -bottom-6 -right-6 z-20 hidden items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 shadow-2xl backdrop-blur-xl sm:flex">
+              <div className="flex -space-x-2">
+                <div className="h-8 w-8 rounded-full border-2 border-slate-900 bg-blue"></div>
+                <div className="h-8 w-8 rounded-full border-2 border-slate-900 bg-cyan"></div>
+                <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-slate-900 bg-gold text-[10px] font-bold text-navy">+5k</div>
+              </div>
+              <p className="ml-2 text-sm font-bold text-white">Active Learners</p>
+            </div>
+
+            <div className="animate-float certificate-shell mx-auto max-w-md rounded-[34px] p-[2px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-transform duration-500 hover:scale-105">
+              <div className="relative overflow-hidden rounded-[32px] bg-white/95 p-8 text-slate-900 backdrop-blur-2xl">
+                <div className="absolute inset-0 certificate-ornament opacity-30" />
+                <div className="absolute right-5 top-5 rounded-full border border-gold/40 bg-gold/10 p-2">
+                  <ShieldCheck className="h-6 w-6 text-gold" />
                 </div>
-                <div className="absolute -right-6 top-20 rotate-45 rounded-full bg-navy px-8 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-gold">
+                <div className="absolute -right-6 top-20 rotate-45 rounded-full bg-navy px-8 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-gold shadow-md">
                   Verified
                 </div>
-                <div className="absolute bottom-6 right-6 flex h-20 w-20 items-center justify-center rounded-full border-4 border-double border-gold/70 bg-gold/10 font-heading text-xs font-bold uppercase tracking-widest text-gold">
+                <div className="absolute bottom-6 right-6 flex h-20 w-20 items-center justify-center rounded-full border-[3px] border-double border-gold/70 bg-gold/10 font-heading text-[10px] font-bold uppercase tracking-widest text-gold">
                   Seal
                 </div>
                 <div className="flex items-center justify-center gap-3">
-                  <img src="/interntex-logo.png" alt="interntex" className="h-10 w-auto" />
+                  <img src="/interntex-logo.png" alt="interntex" className="h-10 w-auto drop-shadow-sm" />
                   <p className="text-center font-heading text-2xl font-bold lowercase text-navy">interntex</p>
                 </div>
-                <div className="mx-auto mt-3 h-px w-52 bg-gradient-to-r from-transparent via-gold to-transparent" />
-                <p className="mt-4 text-center font-certificate text-4xl font-bold text-navy">Certificate of Completion</p>
-                <p className="mt-6 text-center text-sm uppercase tracking-[0.3em] text-slate-500">Awarded To</p>
-                <p className="mt-3 text-center font-certificate text-4xl font-bold text-gold drop-shadow-sm">Rakesh Kumar</p>
-                <p className="mt-4 text-center text-slate-600">For successfully completing Full Stack Web Development</p>
-                <div className="mx-auto mt-5 h-px w-64 bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
-                <div className="mt-8 flex items-center justify-between text-sm text-slate-500">
+                <div className="mx-auto mt-4 h-px w-52 bg-gradient-to-r from-transparent via-gold to-transparent" />
+                <p className="mt-5 text-center font-certificate text-3xl font-extrabold text-navy">Certificate of Completion</p>
+                <p className="mt-6 text-center text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Awarded To</p>
+                <p className="mt-2 text-center font-certificate text-[2.5rem] font-bold leading-tight text-gold drop-shadow-md">Rakesh Kumar</p>
+                <p className="mt-4 text-center text-sm font-medium text-slate-600">For successfully mastering Full Stack Web Development</p>
+                <div className="mx-auto mt-6 h-px w-64 bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
+                <div className="mt-8 flex items-center justify-between text-xs font-bold text-slate-400">
                   <span>ID: INT-2026-2210</span>
-                  <span>Verified</span>
+                  <span className="text-gold">100% Verified</span>
                 </div>
               </div>
             </div>
@@ -268,7 +275,7 @@ export default function Home() {
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.28em] text-blue">Testimonials</p>
-          <h2 className="mt-2 text-3xl font-bold">Students who found momentum with InternTech</h2>
+          <h2 className="mt-2 text-3xl font-bold">Students who found momentum with Interntex</h2>
         </div>
         <div className="mt-10 grid gap-6 lg:grid-cols-3">
           {visibleTestimonials.map((item) => (

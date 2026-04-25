@@ -7,7 +7,7 @@ async function startServer() {
   try {
     await db.connect();
     app.listen(PORT, () => {
-      console.log(`InternTech server running at http://localhost:${PORT}`);
+      console.log(`Interntex server running at http://localhost:${PORT}`);
     });
   } catch (error) {
     console.error("[Server Startup] Failed to connect MongoDB:", error.message);

@@ -279,7 +279,7 @@ function buildQuizQuestions(course) {
       `${topics[index % topics.length]} should be skipped during beginner projects`
     ],
     correctAnswer: index % 4,
-    explanation: `In InternTech's ${course.title} curriculum, ${topics[index % topics.length]} is taught through practical and career-relevant examples.`,
+    explanation: `In Interntex's ${course.title} curriculum, ${topics[index % topics.length]} is taught through practical and career-relevant examples.`,
     topic: topics[index % topics.length]
   }));
 }
@@ -293,14 +293,14 @@ async function seed() {
 
   const adminUser = {
     id: uuidv4(),
-    name: "InternTech Admin",
-    email: "admin@interntech.in",
+    name: "Interntex Admin",
+    email: "admin@Interntex.in",
     phone: "9876543210",
     password: adminPassword,
     role: "admin",
     referralCode: "INT-ADMIN0001",
     status: "active",
-    college: "InternTech HQ",
+    college: "Interntex HQ",
     degree: "Other",
     branch: "Operations",
     year: "Pass-out",
@@ -459,7 +459,7 @@ async function seed() {
     {
       id: uuidv4(),
       companyName: "Razorpay Hiring Team",
-      email: "company@interntech.in",
+      email: "company@Interntex.in",
       password: await bcrypt.hash("Company@123", 12),
       role: "company",
       location: "Bengaluru",
@@ -522,8 +522,8 @@ async function seed() {
   ];
 
   await db.write();
-  console.log("InternTech database seeded successfully.");
-  console.log("Admin Login: admin@interntech.in / Admin@123");
+  console.log("Interntex database seeded successfully.");
+  console.log("Admin Login: admin@Interntex.in / Admin@123");
   console.log("Test Student: student@test.com / Test@123");
 }
 

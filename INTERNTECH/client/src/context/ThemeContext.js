@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 
-const STORAGE_KEY = "interntech_theme";
+const STORAGE_KEY = "Interntex_theme";
 const ThemeContext = createContext(null);
 
 function resolveInitialTheme() {

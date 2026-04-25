@@ -27,7 +27,7 @@ export default function MyCertificates() {
   };
 
   const shareOnLinkedIn = (certificate) => {
-    const text = `I just completed ${certificate.courseName} on InternTech. Certificate ID: ${certificate.certId}`;
+    const text = `I just completed ${certificate.courseName} on Interntex. Certificate ID: ${certificate.certId}`;
     window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`${window.location.origin}/verify?id=${certificate.certId}`)}&summary=${encodeURIComponent(text)}`, "_blank");
   };
 
@@ -92,7 +92,7 @@ export default function MyCertificates() {
               </button>
             </div>
             <div className="mt-8 rounded-[28px] border-4 border-gold bg-white p-8 text-center text-slate-900">
-              <p className="font-heading text-2xl font-bold text-navy">InternTech</p>
+              <p className="font-heading text-2xl font-bold text-navy">Interntex</p>
               <p className="mt-4 font-certificate text-4xl font-bold text-navy">Certificate of Completion</p>
               <p className="mt-6 text-sm uppercase tracking-[0.3em] text-slate-500">Awarded To</p>
               <p className="mt-3 font-certificate text-5xl font-bold text-gold">{preview.studentName}</p>

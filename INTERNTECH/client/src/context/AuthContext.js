@@ -2,8 +2,8 @@ import axios from "axios";
 import React, { createContext, useContext, useEffect, useMemo, useReducer } from "react";
 import { API_BASE_URL } from "../utils/config";
 
-const STORAGE_TOKEN_KEY = "interntech_token";
-const STORAGE_USER_KEY = "interntech_user";
+const STORAGE_TOKEN_KEY = "Interntex_token";
+const STORAGE_USER_KEY = "Interntex_user";
 
 const initialState = {
   user: null,
@@ -133,8 +133,8 @@ export function AuthProvider({ children }) {
       logout();
     };
 
-    window.addEventListener("interntech:logout", handleForceLogout);
-    return () => window.removeEventListener("interntech:logout", handleForceLogout);
+    window.addEventListener("Interntex:logout", handleForceLogout);
+    return () => window.removeEventListener("Interntex:logout", handleForceLogout);
   }, []);
 
   const value = useMemo(

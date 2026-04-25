@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-const STORAGE_KEY = "interntech_cookie_pref";
+const STORAGE_KEY = "Interntex_cookie_pref";
 
 export default function CookieBanner() {
   const [visible, setVisible] = useState(false);

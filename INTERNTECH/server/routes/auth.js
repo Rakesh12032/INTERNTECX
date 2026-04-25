@@ -43,7 +43,7 @@ function sanitizeUser(user) {
   const { password, resetToken, resetTokenExpiry, _id, __v, ...safeUser } = userObj;
   return {
     ...safeUser,
-    name: safeUser.name || safeUser.companyName || safeUser.institutionName || "InternTech User"
+    name: safeUser.name || safeUser.companyName || safeUser.institutionName || "Interntex User"
   };
 }
 

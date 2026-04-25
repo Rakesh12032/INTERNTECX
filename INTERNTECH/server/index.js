@@ -89,7 +89,7 @@ app.use(async (_req, res, next) => {
 app.get("/api/health", (_req, res) => {
   res.json({
     ok: true,
-    platform: "InternTech",
+    platform: "Interntex",
     message: "Learn. Intern. Succeed."
   });
 });
@@ -116,7 +116,7 @@ app.use((req, res) => {
 });
 
 app.use((error, _req, res, _next) => {
-  console.error("InternTech server error:", {
+  console.error("Interntex server error:", {
     message: error.message,
     stack: error.stack
   });

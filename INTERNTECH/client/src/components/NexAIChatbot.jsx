@@ -4,7 +4,7 @@ import { Bot, Send, Sparkles, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import api from "../utils/api";
 
-const STORAGE_KEY = "interntech_chat_history";
+const STORAGE_KEY = "Interntex_chat_history";
 
 const quickReplies = [
   "Suggest Course",
@@ -33,13 +33,13 @@ const knowledgeBase = [
   { keys: ["job"], reply: "Use the Jobs page to browse openings. Keep your dashboard profile updated and apply early to verified roles that match your skills." },
   { keys: ["interview"], reply: "For interviews, revise projects deeply, prepare role-specific basics, and practice explaining what problem your project solved and what tradeoffs you made." },
   { keys: ["certificate"], reply: "To get a certificate, enroll in a course, complete all lessons, pass the quiz with at least 70 percent, and then your certificate is generated." },
-  { keys: ["verify"], reply: "You can verify any InternTech certificate from the Verify page using the certificate ID. Colleges can also use the College Verify portal." },
+  { keys: ["verify"], reply: "You can verify any Interntex certificate from the Verify page using the certificate ID. Colleges can also use the College Verify portal." },
   { keys: ["verification letter"], reply: "A verification letter can be downloaded from the public Verify page after a certificate is validated successfully." },
-  { keys: ["internship"], reply: "InternTech internship tracks include web dev, AI/ML, data science, cybersecurity, UI/UX, python, cloud and Android/iOS. Open the Internship page and apply for a track." },
+  { keys: ["internship"], reply: "Interntex internship tracks include web dev, AI/ML, data science, cybersecurity, UI/UX, python, cloud and Android/iOS. Open the Internship page and apply for a track." },
   { keys: ["referral"], reply: "You earn Rs. 199 for each successful referral payment. Your referral code, history, and withdrawal progress are visible in Share and Earn." },
   { keys: ["wallet"], reply: "Wallet balance increases after successful referral payouts. Withdrawals unlock once your balance reaches Rs. 500." },
   { keys: ["withdraw"], reply: "You can request a withdrawal from the Share and Earn dashboard once your wallet balance is at least Rs. 500." },
-  { keys: ["ambassador"], reply: "The Ambassador page lets you apply, track the leaderboard, and build your campus presence while helping students discover InternTech." },
+  { keys: ["ambassador"], reply: "The Ambassador page lets you apply, track the leaderboard, and build your campus presence while helping students discover Interntex." },
   { keys: ["college"], reply: "Colleges can log in through College Verify, verify certificates one by one, and also run bulk verification with export options." },
   { keys: ["company"], reply: "Companies can register, get approved by admin, post jobs, and manage applicants from the Company Portal." },
   { keys: ["admin"], reply: "Admins manage courses, certificates, withdrawals, ambassadors, colleges, companies, verification logs, and internship applications from the Admin dashboard." },
@@ -51,8 +51,8 @@ const knowledgeBase = [
   { keys: ["otp"], reply: "OTP is sent during registration. If it expires, you can request resend from the verification modal." },
   { keys: ["forgot password", "reset password"], reply: "Use the Forgot Password option on Login to generate a reset token flow for your account." },
   { keys: ["home"], reply: "The Home page highlights courses, features, testimonials, ambassador opportunities, share and earn, and placement stats." },
-  { keys: ["certificate id"], reply: "Every certificate gets a unique InternTech certificate ID which can be used on the Verify page or in the college portal." },
-  { keys: ["placement"], reply: "InternTech is designed to help students move from learning to internships to verified credentials and then toward job applications." },
+  { keys: ["certificate id"], reply: "Every certificate gets a unique Interntex certificate ID which can be used on the Verify page or in the college portal." },
+  { keys: ["placement"], reply: "Interntex is designed to help students move from learning to internships to verified credentials and then toward job applications." },
   { keys: ["project"], reply: "Projects matter because they prove execution. Use course modules as a base, then build one or two customized portfolio-ready implementations." },
   { keys: ["mentor"], reply: "Each seeded course includes mentor information so learners can understand the focus and style behind the program." },
   { keys: ["free"], reply: "Most seeded courses are free. Some advanced tracks like AWS are paid in the current data setup." },
@@ -60,7 +60,7 @@ const knowledgeBase = [
   { keys: ["duration"], reply: "Course durations vary by track, usually from 4 to 12 weeks in the current setup." },
   { keys: ["student"], reply: "Students can register, verify with OTP, enroll in courses, complete lessons, take quizzes, earn certificates, apply for jobs, and use referrals." },
   { keys: ["help"], reply: "I can help with courses, internships, jobs, certificates, verification, referrals, dashboard usage, college portal, company portal, and career guidance." },
-  { keys: ["platform"], reply: "InternTech combines learning, internships, certificates, jobs, referrals, ambassador growth, and verification into one student-focused platform." }
+  { keys: ["platform"], reply: "Interntex combines learning, internships, certificates, jobs, referrals, ambassador growth, and verification into one student-focused platform." }
 ];
 
 function getResponse(input, userName) {
@@ -95,8 +95,8 @@ export default function NexAIChatbot() {
   const greeting = useMemo(
     () =>
       user?.name
-        ? `Hi ${user.name.split(" ")[0]}, ask me anything about InternTech.`
-        : "Hi, ask me anything about InternTech.",
+        ? `Hi ${user.name.split(" ")[0]}, ask me anything about Interntex.`
+        : "Hi, ask me anything about Interntex.",
     [user]
   );
 
@@ -147,7 +147,7 @@ export default function NexAIChatbot() {
               <div className="flex items-center gap-3">
                 <Sparkles className="h-5 w-5" />
                 <div>
-                  <p className="font-semibold">InternTech AI</p>
+                  <p className="font-semibold">Interntex AI</p>
                   <p className="text-xs text-blue-100">Online</p>
                 </div>
               </div>

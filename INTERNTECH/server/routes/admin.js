@@ -124,6 +124,35 @@ router.get("/certificates", async (req, res) => {
   }
 });
 
+router.post("/certificates/manual", async (req, res) => {
+  try {
+    const { studentName, courseName, duration, college } = req.body;
+    
+    if (!studentName || !courseName) {
+      return res.status(400).json({ message: "Student Name and Course Name are required" });
+    }
+
+    const certificate = {
+      id: uuidv4(),
+      certId: `INT-MAN-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
+      studentId: "manual",
+      studentName,
+      college: college || "N/A",
+      courseId: "manual",
+      courseName,
+      completionDate: new Date().toISOString(),
+      duration: duration || "4 Weeks",
+      type: "manual",
+      status: "active"
+    };
+
+    await stateModels.certificates.create(certificate);
+    return res.status(201).json({ message: "Manual certificate generated", certificate });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to generate manual certificate", error: error.message });
+  }
+});
+
 router.put("/certificates/:certId/revoke", async (req, res) => {
   try {
     const certificate = await stateModels.certificates.findOne({ certId: req.params.certId });
@@ -303,7 +332,7 @@ router.post("/courses", async (req, res) => {
       duration: req.body.duration || "4 weeks",
       price: Number(req.body.price || 0),
       mentor: {
-        name: req.body.mentorName || "InternTech Mentor",
+        name: req.body.mentorName || "Interntex Mentor",
         designation: req.body.mentorDesignation || "Mentor",
         linkedin: req.body.mentorLinkedIn || ""
       },

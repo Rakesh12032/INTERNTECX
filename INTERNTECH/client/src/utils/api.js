@@ -8,7 +8,7 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("interntech_token");
+    const token = localStorage.getItem("Interntex_token");
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -23,9 +23,9 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error?.response?.status === 401) {
-      localStorage.removeItem("interntech_token");
-      localStorage.removeItem("interntech_user");
-      window.dispatchEvent(new Event("interntech:logout"));
+      localStorage.removeItem("Interntex_token");
+      localStorage.removeItem("Interntex_user");
+      window.dispatchEvent(new Event("Interntex:logout"));
 
       if (window.location.pathname !== "/login") {
         window.location.href = "/login";

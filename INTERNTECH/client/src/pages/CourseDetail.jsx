@@ -4,6 +4,8 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import api from "../utils/api";
+import { mockCourses } from "../utils/mockData";
+import { generateCertificatePDF } from "../utils/generateCertificate";
 
 export default function CourseDetail() {
   const { id } = useParams();
@@ -19,7 +21,9 @@ export default function CourseDetail() {
         const response = await api.get(`/courses/${id}`);
         setCourse(response.data);
       } catch (_error) {
-        setCourse(null);
+        // Fallback to mock data
+        const mockCourse = mockCourses.find((c) => c.id === id || c.slug === id);
+        setCourse(mockCourse || null);
       } finally {
         setLoading(false);
       }
@@ -116,7 +120,22 @@ export default function CourseDetail() {
           <div className="mt-8 rounded-3xl border border-gold/20 bg-gold/10 p-5">
             <p className="font-semibold text-navy dark:text-gold">Certificate Preview</p>
             <div className="mt-4 rounded-2xl border border-dashed border-gold/40 bg-white/70 p-6 text-center text-sm text-slate-600 dark:bg-slate-950/40 dark:text-slate-300">
-              Complete the course and pass the final quiz to unlock your premium InternTech certificate.
+              Complete the course and pass the final quiz to unlock your premium Interntex certificate.
+              <button 
+                onClick={() => {
+                  const doc = generateCertificatePDF({
+                    studentName: "Your Name Here",
+                    courseName: course.title,
+                    duration: course.duration,
+                    certId: "INT-DEMO-0000",
+                    completionDate: new Date().toISOString()
+                  });
+                  doc.save("Sample_Interntex_Certificate.pdf");
+                }}
+                className="mt-4 inline-block rounded-xl bg-gold px-4 py-2 text-xs font-bold text-navy hover:bg-gold/90 transition-colors"
+              >
+                Download Sample PDF
+              </button>
             </div>
           </div>
         </div>
