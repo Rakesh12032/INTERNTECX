@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
-import db from "../db/database.js";
+import { stateModels } from "../models/stateModels.js";
 import { requireRole, verifyToken } from "../middleware/auth.js";
 import { sendWithdrawalEmail } from "../utils/emailService.js";
 
@@ -8,8 +8,7 @@ const router = Router();
 
 router.get("/history", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    await db.read();
-    const history = db.data.walletHistory.filter((item) => item.userId === req.user.id);
+    const history = await stateModels.walletHistory.find({ userId: req.user.id }).lean();
     return res.json(history);
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch wallet history", error: error.message });
@@ -20,9 +19,7 @@ router.post("/withdraw", verifyToken, requireRole("student"), async (req, res) =
   try {
     const { accountName, bankName, accountNumber, ifsc, upiId, amount } = req.body;
     const numericAmount = Number(amount);
-    await db.read();
-
-    const user = db.data.users.find((item) => item.id === req.user.id);
+    const user = await stateModels.users.findOne({ id: req.user.id });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -50,8 +47,10 @@ router.post("/withdraw", verifyToken, requireRole("student"), async (req, res) =
     };
 
     user.walletBalance = (user.walletBalance || 0) - numericAmount;
-    db.data.withdrawalRequests.push(request);
-    db.data.walletHistory.push({
+    await user.save();
+
+    await stateModels.withdrawalRequests.create(request);
+    await stateModels.walletHistory.create({
       id: uuidv4(),
       userId: user.id,
       type: "debit",
@@ -59,7 +58,6 @@ router.post("/withdraw", verifyToken, requireRole("student"), async (req, res) =
       description: "Withdrawal request placed",
       timestamp: new Date().toISOString()
     });
-    await db.write();
 
     await sendWithdrawalEmail(user.email, user.name, numericAmount, "pending");
 
@@ -71,8 +69,7 @@ router.post("/withdraw", verifyToken, requireRole("student"), async (req, res) =
 
 router.get("/withdrawals", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    await db.read();
-    const requests = db.data.withdrawalRequests.filter((item) => item.studentId === req.user.id);
+    const requests = await stateModels.withdrawalRequests.find({ studentId: req.user.id }).lean();
     return res.json(requests);
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch withdrawal requests", error: error.message });

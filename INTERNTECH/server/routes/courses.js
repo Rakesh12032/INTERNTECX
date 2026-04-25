@@ -1,5 +1,5 @@
 import { Router } from "express";
-import db from "../db/database.js";
+import { stateModels } from "../models/stateModels.js";
 import { requireRole, verifyToken } from "../middleware/auth.js";
 import { v4 as uuidv4 } from "uuid";
 
@@ -7,32 +7,20 @@ const router = Router();
 
 router.get("/", async (req, res) => {
   try {
-    await db.read();
     const { category, level, duration, featured, limit, page = 1 } = req.query;
-    let courses = [...db.data.courses];
-
-    if (category) {
-      courses = courses.filter((course) => course.category?.toLowerCase() === String(category).toLowerCase());
-    }
-
-    if (level) {
-      courses = courses.filter((course) => course.level?.toLowerCase() === String(level).toLowerCase());
-    }
-
-    if (duration) {
-      courses = courses.filter((course) => course.duration?.toLowerCase().includes(String(duration).toLowerCase()));
-    }
-
-    if (featured === "true") {
-      courses = courses.filter((course) => course.featured);
-    }
+    
+    let query = {};
+    if (category) query.category = new RegExp(`^${category}$`, "i");
+    if (level) query.level = new RegExp(`^${level}$`, "i");
+    if (duration) query.duration = new RegExp(duration, "i");
+    if (featured === "true") query.featured = true;
 
     const currentPage = Number(page) || 1;
     const pageSize = Number(limit) || 6;
-    const total = courses.length;
+    const total = await stateModels.courses.countDocuments(query);
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
-    const startIndex = (currentPage - 1) * pageSize;
-    const paginatedCourses = courses.slice(startIndex, startIndex + pageSize);
+    const skip = (currentPage - 1) * pageSize;
+    const paginatedCourses = await stateModels.courses.find(query).skip(skip).limit(pageSize).lean();
 
     return res.json({
       courses: paginatedCourses,
@@ -50,23 +38,16 @@ router.get("/", async (req, res) => {
 
 router.get("/my", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    await db.read();
-
-    const enrollments = db.data.enrollments
-      .filter((item) => item.studentId === req.user.id)
-      .map((enrollment) => {
-        const course = db.data.courses.find((item) => item.id === enrollment.courseId);
-
-        return course
-          ? {
-              ...course,
-              enrollment
-            }
-          : null;
+    const enrollmentsDocs = await stateModels.enrollments.find({ studentId: req.user.id }).lean();
+    const enrollments = await Promise.all(
+      enrollmentsDocs.map(async (enrollment) => {
+        const course = await stateModels.courses.findOne({ id: enrollment.courseId }).lean();
+        return course ? { ...course, enrollment } : null;
       })
-      .filter(Boolean);
+    );
+    const filteredEnrollments = enrollments.filter(Boolean);
 
-    return res.json({ courses: enrollments });
+    return res.json({ courses: filteredEnrollments });
   } catch (error) {
     return res
       .status(500)
@@ -76,8 +57,9 @@ router.get("/my", verifyToken, requireRole("student"), async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
-    await db.read();
-    const course = db.data.courses.find((item) => item.id === req.params.id || item.slug === req.params.id);
+    const course = await stateModels.courses.findOne({
+      $or: [{ id: req.params.id }, { slug: req.params.id }]
+    }).lean();
 
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
@@ -96,16 +78,17 @@ router.get("/:id", async (req, res) => {
 router.post("/enroll", verifyToken, requireRole("student"), async (req, res) => {
   try {
     const { courseId } = req.body;
-    await db.read();
-
-    const course = db.data.courses.find((item) => item.id === courseId || item.slug === courseId);
+    const course = await stateModels.courses.findOne({
+      $or: [{ id: courseId }, { slug: courseId }]
+    });
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }
 
-    const existingEnrollment = db.data.enrollments.find(
-      (item) => item.courseId === course.id && item.studentId === req.user.id
-    );
+    const existingEnrollment = await stateModels.enrollments.findOne({
+      courseId: course.id,
+      studentId: req.user.id
+    }).lean();
 
     if (existingEnrollment) {
       return res.status(409).json({ message: "You are already enrolled in this course" });
@@ -121,9 +104,9 @@ router.post("/enroll", verifyToken, requireRole("student"), async (req, res) => 
       createdAt: new Date().toISOString()
     };
 
-    db.data.enrollments.push(enrollment);
+    await stateModels.enrollments.create(enrollment);
     course.enrolledCount = (course.enrolledCount || 0) + 1;
-    await db.write();
+    await course.save();
 
     return res.status(201).json({ message: "Enrollment successful", enrollmentId: enrollment.id });
   } catch (error) {
@@ -133,16 +116,18 @@ router.post("/enroll", verifyToken, requireRole("student"), async (req, res) => 
 
 router.get("/:id/progress", verifyToken, async (req, res) => {
   try {
-    await db.read();
-    const course = db.data.courses.find((item) => item.id === req.params.id || item.slug === req.params.id);
+    const course = await stateModels.courses.findOne({
+      $or: [{ id: req.params.id }, { slug: req.params.id }]
+    }).lean();
 
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }
 
-    const enrollment = db.data.enrollments.find(
-      (item) => item.courseId === course.id && item.studentId === req.user.id
-    );
+    const enrollment = await stateModels.enrollments.findOne({
+      courseId: course.id,
+      studentId: req.user.id
+    }).lean();
 
     if (!enrollment) {
       return res.status(404).json({ message: "Enrollment not found" });
@@ -160,16 +145,17 @@ router.get("/:id/progress", verifyToken, async (req, res) => {
 router.post("/lesson/complete", verifyToken, requireRole("student"), async (req, res) => {
   try {
     const { courseId, lessonId } = req.body;
-    await db.read();
-
-    const course = db.data.courses.find((item) => item.id === courseId || item.slug === courseId);
+    const course = await stateModels.courses.findOne({
+      $or: [{ id: courseId }, { slug: courseId }]
+    }).lean();
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }
 
-    const enrollment = db.data.enrollments.find(
-      (item) => item.courseId === course.id && item.studentId === req.user.id
-    );
+    const enrollment = await stateModels.enrollments.findOne({
+      courseId: course.id,
+      studentId: req.user.id
+    });
 
     if (!enrollment) {
       return res.status(404).json({ message: "Enrollment not found" });
@@ -182,7 +168,7 @@ router.post("/lesson/complete", verifyToken, requireRole("student"), async (req,
     enrollment.progress = Math.min(100, Math.round((enrollment.completedLessons.length / totalLessons) * 100));
     enrollment.quizUnlocked = enrollment.progress === 100;
     enrollment.updatedAt = new Date().toISOString();
-    await db.write();
+    await enrollment.save();
 
     return res.json({
       message: "Lesson marked complete",

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { BrowserRouter, Link, Outlet, Route, Routes } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./context/AuthContext";
@@ -10,27 +10,29 @@ import CookieBanner from "./components/CookieBanner";
 import ScrollToTop from "./components/ScrollToTop";
 import WhatsAppButton from "./components/WhatsAppButton";
 import NexAIChatbot from "./components/NexAIChatbot";
-import Home from "./pages/Home";
-import Courses from "./pages/Courses";
-import CourseDetail from "./pages/CourseDetail";
-import CourseLearning from "./pages/CourseLearning";
-import Internship from "./pages/Internship";
-import Register from "./pages/Register";
-import Login from "./pages/Login";
-import Jobs from "./pages/Jobs";
-import JobDetail from "./pages/JobDetail";
-import NotFound from "./pages/NotFound";
-import Verify from "./pages/Verify";
-import Ambassador from "./pages/Ambassador";
-import QuizAssessment from "./pages/QuizAssessment";
-import Admin from "./pages/Admin";
-import CollegeVerify from "./pages/CollegeVerify";
-import CompanyPortal from "./pages/CompanyPortal";
-import Overview from "./pages/Dashboard/Overview";
-import Progress from "./pages/Dashboard/Progress";
-import ShareAndEarn from "./pages/Dashboard/ShareAndEarn";
-import MyCertificates from "./pages/Dashboard/MyCertificates";
-import MyJobs from "./pages/Dashboard/MyJobs";
+import PageLoader from "./components/PageLoader";
+
+const Home = lazy(() => import("./pages/Home"));
+const Courses = lazy(() => import("./pages/Courses"));
+const CourseDetail = lazy(() => import("./pages/CourseDetail"));
+const CourseLearning = lazy(() => import("./pages/CourseLearning"));
+const Internship = lazy(() => import("./pages/Internship"));
+const Register = lazy(() => import("./pages/Register"));
+const Login = lazy(() => import("./pages/Login"));
+const Jobs = lazy(() => import("./pages/Jobs"));
+const JobDetail = lazy(() => import("./pages/JobDetail"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Verify = lazy(() => import("./pages/Verify"));
+const Ambassador = lazy(() => import("./pages/Ambassador"));
+const QuizAssessment = lazy(() => import("./pages/QuizAssessment"));
+const Admin = lazy(() => import("./pages/Admin"));
+const CollegeVerify = lazy(() => import("./pages/CollegeVerify"));
+const CompanyPortal = lazy(() => import("./pages/CompanyPortal"));
+const Overview = lazy(() => import("./pages/Dashboard/Overview"));
+const Progress = lazy(() => import("./pages/Dashboard/Progress"));
+const ShareAndEarn = lazy(() => import("./pages/Dashboard/ShareAndEarn"));
+const MyCertificates = lazy(() => import("./pages/Dashboard/MyCertificates"));
+const MyJobs = lazy(() => import("./pages/Dashboard/MyJobs"));
 
 function AppLayout() {
   return (
@@ -91,8 +93,9 @@ export default function App() {
     <ThemeProvider>
       <AuthProvider>
         <BrowserRouter>
-          <Routes>
-            <Route element={<AppLayout />}>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route element={<AppLayout />}>
               <Route path="/" element={<Home />} />
               <Route path="/courses" element={<Courses />} />
               <Route path="/courses/:id" element={<CourseDetail />} />
@@ -124,8 +127,9 @@ export default function App() {
               </Route>
 
               <Route path="*" element={<NotFound />} />
-            </Route>
-          </Routes>
+              </Route>
+            </Routes>
+          </Suspense>
           <Toaster position="top-right" />
         </BrowserRouter>
       </AuthProvider>

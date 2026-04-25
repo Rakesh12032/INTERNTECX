@@ -1,25 +1,28 @@
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
-import db from "../db/database.js";
+import { stateModels } from "../models/stateModels.js";
 import { requireRole, verifyToken } from "../middleware/auth.js";
 
 const router = Router();
 
 router.get("/course/:courseId", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    await db.read();
-    const course = db.data.courses.find((item) => item.id === req.params.courseId || item.slug === req.params.courseId);
+    const course = await stateModels.courses.findOne({
+      $or: [{ id: req.params.courseId }, { slug: req.params.courseId }]
+    }).lean();
 
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }
 
-    const attempts = db.data.quizAttempts.filter(
-      (item) => item.studentId === req.user.id && item.courseId === course.id
-    );
-    const enrollment = db.data.enrollments.find(
-      (item) => item.studentId === req.user.id && item.courseId === course.id
-    );
+    const attempts = await stateModels.quizAttempts.find({
+      studentId: req.user.id,
+      courseId: course.id
+    }).lean();
+    const enrollment = await stateModels.enrollments.findOne({
+      studentId: req.user.id,
+      courseId: course.id
+    }).lean();
 
     if (!enrollment) {
       return res.status(403).json({ message: "Enroll in the course before taking the quiz" });
@@ -38,9 +41,8 @@ router.get("/course/:courseId", verifyToken, requireRole("student"), async (req,
       }
     }
 
-    const questions = db.data.quizzes
-      .filter((item) => item.courseId === course.id)
-      .map(({ correctAnswer, explanation, ...safeQuestion }) => safeQuestion);
+    const questionsDocs = await stateModels.quizzes.find({ courseId: course.id }).lean();
+    const questions = questionsDocs.map(({ correctAnswer, explanation, ...safeQuestion }) => safeQuestion);
 
     return res.json({
       course: {
@@ -59,16 +61,17 @@ router.get("/course/:courseId", verifyToken, requireRole("student"), async (req,
 router.post("/submit", verifyToken, requireRole("student"), async (req, res) => {
   try {
     const { courseId, answers, tabSwitchCount = 0, autoSubmitted = false } = req.body;
-    await db.read();
-
-    const course = db.data.courses.find((item) => item.id === courseId || item.slug === courseId);
+    const course = await stateModels.courses.findOne({
+      $or: [{ id: courseId }, { slug: courseId }]
+    }).lean();
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }
 
-    const enrollment = db.data.enrollments.find(
-      (item) => item.studentId === req.user.id && item.courseId === course.id
-    );
+    const enrollment = await stateModels.enrollments.findOne({
+      studentId: req.user.id,
+      courseId: course.id
+    }).lean();
 
     if (!enrollment) {
       return res.status(403).json({ message: "Enroll in the course before attempting the quiz" });
@@ -78,9 +81,10 @@ router.post("/submit", verifyToken, requireRole("student"), async (req, res) => 
       return res.status(403).json({ message: "Course completion required before quiz submission" });
     }
 
-    const attempts = db.data.quizAttempts.filter(
-      (item) => item.studentId === req.user.id && item.courseId === course.id
-    );
+    const attempts = await stateModels.quizAttempts.find({
+      studentId: req.user.id,
+      courseId: course.id
+    }).lean();
 
     if (attempts.length >= 3) {
       const lastAttempt = attempts[attempts.length - 1];
@@ -89,7 +93,7 @@ router.post("/submit", verifyToken, requireRole("student"), async (req, res) => 
       }
     }
 
-    const questions = db.data.quizzes.filter((item) => item.courseId === course.id);
+    const questions = await stateModels.quizzes.find({ courseId: course.id }).lean();
     if (!questions.length) {
       return res.status(404).json({ message: "Quiz questions not found" });
     }
@@ -125,8 +129,7 @@ router.post("/submit", verifyToken, requireRole("student"), async (req, res) => 
       timestamp: new Date().toISOString()
     };
 
-    db.data.quizAttempts.push(attempt);
-    await db.write();
+    await stateModels.quizAttempts.create(attempt);
 
     return res.json({
       score,
@@ -143,15 +146,17 @@ router.post("/submit", verifyToken, requireRole("student"), async (req, res) => 
 
 router.get("/attempts/:courseId", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    await db.read();
-    const course = db.data.courses.find((item) => item.id === req.params.courseId || item.slug === req.params.courseId);
+    const course = await stateModels.courses.findOne({
+      $or: [{ id: req.params.courseId }, { slug: req.params.courseId }]
+    }).lean();
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }
 
-    const attempts = db.data.quizAttempts.filter(
-      (item) => item.studentId === req.user.id && item.courseId === course.id
-    );
+    const attempts = await stateModels.quizAttempts.find({
+      studentId: req.user.id,
+      courseId: course.id
+    }).lean();
 
     return res.json(attempts);
   } catch (error) {

@@ -1,35 +1,26 @@
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
-import db from "../db/database.js";
+import { stateModels } from "../models/stateModels.js";
 import { requireRole, verifyToken } from "../middleware/auth.js";
 
 const router = Router();
 
 router.get("/", async (req, res) => {
   try {
-    await db.read();
     const { location, experience, type, search } = req.query;
-    let jobs = [...db.data.jobs];
+    let query = {};
 
-    if (location) {
-      jobs = jobs.filter((job) => job.location.toLowerCase().includes(String(location).toLowerCase()));
-    }
-
-    if (experience) {
-      jobs = jobs.filter((job) => job.experience.toLowerCase().includes(String(experience).toLowerCase()));
-    }
-
-    if (type) {
-      jobs = jobs.filter((job) => job.type.toLowerCase() === String(type).toLowerCase());
-    }
-
+    if (location) query.location = new RegExp(location, "i");
+    if (experience) query.experience = new RegExp(experience, "i");
+    if (type) query.type = new RegExp(`^${type}$`, "i");
     if (search) {
-      const query = String(search).toLowerCase();
-      jobs = jobs.filter(
-        (job) => job.company.toLowerCase().includes(query) || job.role.toLowerCase().includes(query)
-      );
+      query.$or = [
+        { company: new RegExp(search, "i") },
+        { role: new RegExp(search, "i") }
+      ];
     }
 
+    const jobs = await stateModels.jobs.find(query).lean();
     return res.json(jobs);
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch jobs", error: error.message });
@@ -38,19 +29,18 @@ router.get("/", async (req, res) => {
 
 router.get("/my/applications", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    await db.read();
-    const applications = db.data.jobApplications
-      .filter((item) => item.studentId === req.user.id)
-      .map((application) => {
-        const job = db.data.jobs.find((item) => item.id === application.jobId);
-
+    const applicationsDocs = await stateModels.jobApplications.find({ studentId: req.user.id }).lean();
+    const applications = await Promise.all(
+      applicationsDocs.map(async (application) => {
+        const job = await stateModels.jobs.findOne({ id: application.jobId }).lean();
         return {
           ...application,
           location: job?.location || "",
           salary: job?.salary || "",
           experience: job?.experience || ""
         };
-      });
+      })
+    );
 
     return res.json(applications);
   } catch (error) {
@@ -60,22 +50,15 @@ router.get("/my/applications", verifyToken, requireRole("student"), async (req, 
 
 router.get("/saved", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    await db.read();
-    const savedJobs = db.data.savedJobs
-      .filter((item) => item.studentId === req.user.id)
-      .map((savedJob) => {
-        const job = db.data.jobs.find((item) => item.id === savedJob.jobId);
-
-        return job
-          ? {
-              ...savedJob,
-              job
-            }
-          : null;
+    const savedJobsDocs = await stateModels.savedJobs.find({ studentId: req.user.id }).lean();
+    const savedJobs = await Promise.all(
+      savedJobsDocs.map(async (savedJob) => {
+        const job = await stateModels.jobs.findOne({ id: savedJob.jobId }).lean();
+        return job ? { ...savedJob, job } : null;
       })
-      .filter(Boolean);
+    );
 
-    return res.json(savedJobs);
+    return res.json(savedJobs.filter(Boolean));
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch saved jobs", error: error.message });
   }
@@ -83,8 +66,7 @@ router.get("/saved", verifyToken, requireRole("student"), async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
-    await db.read();
-    const job = db.data.jobs.find((item) => item.id === req.params.id);
+    const job = await stateModels.jobs.findOne({ id: req.params.id }).lean();
 
     if (!job) {
       return res.status(404).json({ message: "Job not found" });
@@ -110,17 +92,17 @@ router.get("/:id", async (req, res) => {
 
 router.post("/:id/apply", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    await db.read();
-    const job = db.data.jobs.find((item) => item.id === req.params.id);
-    const student = db.data.users.find((item) => item.id === req.user.id);
+    const job = await stateModels.jobs.findOne({ id: req.params.id }).lean();
+    const student = await stateModels.users.findOne({ id: req.user.id }).lean();
 
     if (!job || !student) {
       return res.status(404).json({ message: "Job or student not found" });
     }
 
-    const existing = db.data.jobApplications.find(
-      (item) => item.jobId === job.id && item.studentId === student.id
-    );
+    const existing = await stateModels.jobApplications.findOne({
+      jobId: job.id,
+      studentId: student.id
+    }).lean();
 
     if (existing) {
       return res.status(409).json({ message: "You have already applied for this job" });
@@ -141,8 +123,7 @@ router.post("/:id/apply", verifyToken, requireRole("student"), async (req, res) 
       createdAt: new Date().toISOString()
     };
 
-    db.data.jobApplications.push(application);
-    await db.write();
+    await stateModels.jobApplications.create(application);
 
     return res.status(201).json({ message: "Application submitted", application });
   } catch (error) {
@@ -152,16 +133,16 @@ router.post("/:id/apply", verifyToken, requireRole("student"), async (req, res) 
 
 router.post("/:id/save", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    await db.read();
-    const job = db.data.jobs.find((item) => item.id === req.params.id);
+    const job = await stateModels.jobs.findOne({ id: req.params.id }).lean();
 
     if (!job) {
       return res.status(404).json({ message: "Job not found" });
     }
 
-    const existing = db.data.savedJobs.find(
-      (item) => item.jobId === job.id && item.studentId === req.user.id
-    );
+    const existing = await stateModels.savedJobs.findOne({
+      jobId: job.id,
+      studentId: req.user.id
+    }).lean();
 
     if (existing) {
       return res.status(409).json({ message: "Job already saved" });
@@ -174,8 +155,7 @@ router.post("/:id/save", verifyToken, requireRole("student"), async (req, res) =
       savedAt: new Date().toISOString()
     };
 
-    db.data.savedJobs.push(savedJob);
-    await db.write();
+    await stateModels.savedJobs.create(savedJob);
 
     return res.status(201).json({ message: "Job saved", savedJob });
   } catch (error) {
@@ -185,17 +165,16 @@ router.post("/:id/save", verifyToken, requireRole("student"), async (req, res) =
 
 router.delete("/saved/:jobId", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    await db.read();
-    const existing = db.data.savedJobs.find(
-      (item) => item.jobId === req.params.jobId && item.studentId === req.user.id
-    );
+    const existing = await stateModels.savedJobs.findOne({
+      jobId: req.params.jobId,
+      studentId: req.user.id
+    });
 
     if (!existing) {
       return res.status(404).json({ message: "Saved job not found" });
     }
 
-    db.data.savedJobs = db.data.savedJobs.filter((item) => item.id !== existing.id);
-    await db.write();
+    await stateModels.savedJobs.deleteOne({ _id: existing._id });
 
     return res.json({ message: "Saved job removed" });
   } catch (error) {

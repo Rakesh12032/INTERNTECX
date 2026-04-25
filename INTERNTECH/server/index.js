@@ -6,6 +6,7 @@ import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
 import db from "./db/database.js";
+import { generalCloudinaryStorage } from "./utils/cloudinary.js";
 
 import adminRoutes from "./routes/admin.js";
 import ambassadorRoutes from "./routes/ambassador.js";
@@ -29,18 +30,8 @@ const uploadsDirectory = process.env.VERCEL ? "/tmp/uploads" : localUploadsDirec
 
 fs.mkdirSync(uploadsDirectory, { recursive: true });
 
-const storage = multer.diskStorage({
-  destination: (_req, _file, callback) => {
-    callback(null, uploadsDirectory);
-  },
-  filename: (_req, file, callback) => {
-    const safeName = `${Date.now()}-${file.originalname.replace(/\s+/g, "-").toLowerCase()}`;
-    callback(null, safeName);
-  }
-});
-
 export const upload = multer({
-  storage,
+  storage: generalCloudinaryStorage,
   limits: {
     fileSize: 10 * 1024 * 1024
   }

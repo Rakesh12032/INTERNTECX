@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
-import db from "../db/database.js";
+import { stateModels } from "../models/stateModels.js";
 import { requireRole, verifyToken } from "../middleware/auth.js";
 import { sendCertificateEmail } from "../utils/emailService.js";
 import { generateCertificateId } from "../utils/generators.js";
@@ -10,11 +10,14 @@ const router = Router();
 router.post("/generate", verifyToken, requireRole("student"), async (req, res) => {
   try {
     const { courseId, type = "course" } = req.body;
-    await db.read();
-
-    const user = db.data.users.find((item) => item.id === req.user.id);
-    const course = db.data.courses.find((item) => item.id === courseId || item.slug === courseId);
-    const enrollment = db.data.enrollments.find((item) => item.studentId === req.user.id && item.courseId === course?.id);
+    const user = await stateModels.users.findOne({ id: req.user.id }).lean();
+    const course = await stateModels.courses.findOne({
+      $or: [{ id: courseId }, { slug: courseId }]
+    }).lean();
+    const enrollment = await stateModels.enrollments.findOne({
+      studentId: req.user.id,
+      courseId: course?.id
+    }).lean();
 
     if (!user || !course || !enrollment) {
       return res.status(404).json({ message: "Eligible course enrollment not found" });
@@ -24,9 +27,11 @@ router.post("/generate", verifyToken, requireRole("student"), async (req, res) =
       return res.status(400).json({ message: "Complete the course before generating a certificate" });
     }
 
-    const existing = db.data.certificates.find(
-      (item) => item.studentId === req.user.id && item.courseId === course.id && item.status !== "revoked"
-    );
+    const existing = await stateModels.certificates.findOne({
+      studentId: req.user.id,
+      courseId: course.id,
+      status: { $ne: "revoked" }
+    }).lean();
 
     if (existing) {
       return res.json(existing);
@@ -46,8 +51,7 @@ router.post("/generate", verifyToken, requireRole("student"), async (req, res) =
       status: "active"
     };
 
-    db.data.certificates.push(certificate);
-    await db.write();
+    await stateModels.certificates.create(certificate);
     await sendCertificateEmail(user.email, user.name, course.title, certificate.certId);
 
     return res.status(201).json(certificate);
@@ -58,8 +62,7 @@ router.post("/generate", verifyToken, requireRole("student"), async (req, res) =
 
 router.get("/my", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    await db.read();
-    const certificates = db.data.certificates.filter((item) => item.studentId === req.user.id);
+    const certificates = await stateModels.certificates.find({ studentId: req.user.id }).lean();
     return res.json(certificates);
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch certificates", error: error.message });
@@ -68,16 +71,14 @@ router.get("/my", verifyToken, requireRole("student"), async (req, res) => {
 
 router.get("/verify/:certId", async (req, res) => {
   try {
-    await db.read();
-    const certificate = db.data.certificates.find((item) => item.certId === req.params.certId);
+    const certificate = await stateModels.certificates.findOne({ certId: req.params.certId }).lean();
 
-    db.data.verificationLogs.push({
+    await stateModels.verificationLogs.create({
       id: uuidv4(),
       certId: req.params.certId,
       verifiedAt: new Date().toISOString(),
       status: certificate?.status || "not_found"
     });
-    await db.write();
 
     if (!certificate) {
       return res.status(404).json({ valid: false, reason: "not_found" });
@@ -95,8 +96,7 @@ router.get("/verify/:certId", async (req, res) => {
 
 router.get("/verification-letter/:certId", async (req, res) => {
   try {
-    await db.read();
-    const certificate = db.data.certificates.find((item) => item.certId === req.params.certId);
+    const certificate = await stateModels.certificates.findOne({ certId: req.params.certId }).lean();
 
     if (!certificate) {
       return res.status(404).json({ message: "Certificate not found" });
@@ -116,8 +116,7 @@ router.get("/verification-letter/:certId", async (req, res) => {
 
 router.put("/revoke/:certId", verifyToken, requireRole("admin"), async (req, res) => {
   try {
-    await db.read();
-    const certificate = db.data.certificates.find((item) => item.certId === req.params.certId);
+    const certificate = await stateModels.certificates.findOne({ certId: req.params.certId });
 
     if (!certificate) {
       return res.status(404).json({ message: "Certificate not found" });
@@ -125,7 +124,7 @@ router.put("/revoke/:certId", verifyToken, requireRole("admin"), async (req, res
 
     certificate.status = "revoked";
     certificate.revokeReason = req.body.reason || "Revoked by admin";
-    await db.write();
+    await certificate.save();
     return res.json({ message: "Certificate revoked", certificate });
   } catch (error) {
     return res.status(500).json({ message: "Failed to revoke certificate", error: error.message });

@@ -1,15 +1,14 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { Router } from "express";
-import db from "../db/database.js";
+import { stateModels } from "../models/stateModels.js";
 
 const router = Router();
 
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    await db.read();
-    const college = db.data.colleges.find((item) => item.email === email?.toLowerCase());
+    const college = await stateModels.colleges.findOne({ email: email?.toLowerCase() }).lean();
 
     if (!college) {
       return res.status(401).json({ message: "Invalid credentials" });

@@ -121,7 +121,7 @@ export default function Home() {
               #1 Internship Platform in Bihar
             </div>
             <h1 className="mt-6 text-5xl font-bold leading-tight text-white sm:text-6xl">
-              Launch Your Tech Career with InternTech
+              Launch Your Tech Career with interntex
             </h1>
             <p className="mt-5 max-w-xl text-xl text-slate-300">
               Real Internships. Verified Certificates. Dream Jobs.
@@ -162,7 +162,10 @@ export default function Home() {
                 <div className="absolute bottom-6 right-6 flex h-20 w-20 items-center justify-center rounded-full border-4 border-double border-gold/70 bg-gold/10 font-heading text-xs font-bold uppercase tracking-widest text-gold">
                   Seal
                 </div>
-                <p className="text-center font-heading text-2xl font-bold text-navy">InternTech</p>
+                <div className="flex items-center justify-center gap-3">
+                  <img src="/interntex-logo.png" alt="interntex" className="h-10 w-auto" />
+                  <p className="text-center font-heading text-2xl font-bold lowercase text-navy">interntex</p>
+                </div>
                 <div className="mx-auto mt-3 h-px w-52 bg-gradient-to-r from-transparent via-gold to-transparent" />
                 <p className="mt-4 text-center font-certificate text-4xl font-bold text-navy">Certificate of Completion</p>
                 <p className="mt-6 text-center text-sm uppercase tracking-[0.3em] text-slate-500">Awarded To</p>

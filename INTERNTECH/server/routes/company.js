@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
-import db from "../db/database.js";
+import { stateModels } from "../models/stateModels.js";
 import { requireRole, verifyToken } from "../middleware/auth.js";
 
 const router = Router();
@@ -10,14 +10,12 @@ const router = Router();
 router.post("/register", async (req, res) => {
   try {
     const { companyName, email, password, location } = req.body;
-    await db.read();
-
-    const existing = db.data.companies.find((item) => item.email === email?.toLowerCase());
+    const existing = await stateModels.companies.findOne({ email: email?.toLowerCase() }).lean();
     if (existing) {
       return res.status(409).json({ message: "Company already exists" });
     }
 
-    db.data.companies.push({
+    await stateModels.companies.create({
       id: uuidv4(),
       companyName,
       email: email.toLowerCase(),
@@ -28,7 +26,6 @@ router.post("/register", async (req, res) => {
       jobs: [],
       createdAt: new Date().toISOString()
     });
-    await db.write();
 
     return res.status(201).json({ message: "Company registration submitted for approval" });
   } catch (error) {
@@ -39,8 +36,7 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    await db.read();
-    const company = db.data.companies.find((item) => item.email === email?.toLowerCase());
+    const company = await stateModels.companies.findOne({ email: email?.toLowerCase() }).lean();
 
     if (!company) {
       return res.status(401).json({ message: "Invalid credentials" });
@@ -78,8 +74,7 @@ router.post("/login", async (req, res) => {
 
 router.get("/jobs", verifyToken, requireRole("company"), async (req, res) => {
   try {
-    await db.read();
-    const jobs = db.data.jobs.filter((item) => item.companyId === req.user.id);
+    const jobs = await stateModels.jobs.find({ companyId: req.user.id }).lean();
     return res.json(jobs);
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch company jobs", error: error.message });
@@ -88,9 +83,9 @@ router.get("/jobs", verifyToken, requireRole("company"), async (req, res) => {
 
 router.get("/applicants", verifyToken, requireRole("company"), async (req, res) => {
   try {
-    await db.read();
-    const jobs = db.data.jobs.filter((item) => item.companyId === req.user.id).map((item) => item.id);
-    const applicants = db.data.jobApplications.filter((item) => jobs.includes(item.jobId));
+    const jobs = await stateModels.jobs.find({ companyId: req.user.id }).lean();
+    const jobIds = jobs.map((item) => item.id);
+    const applicants = await stateModels.jobApplications.find({ jobId: { $in: jobIds } }).lean();
     return res.json(applicants);
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch applicants", error: error.message });
@@ -99,16 +94,16 @@ router.get("/applicants", verifyToken, requireRole("company"), async (req, res) 
 
 router.put("/applicants/:id", verifyToken, requireRole("company"), async (req, res) => {
   try {
-    await db.read();
-    const application = db.data.jobApplications.find((item) => item.id === req.params.id);
+    const application = await stateModels.jobApplications.findOne({ id: req.params.id });
 
     if (!application) {
       return res.status(404).json({ message: "Application not found" });
     }
 
-    const companyJob = db.data.jobs.find(
-      (item) => item.id === application.jobId && item.companyId === req.user.id
-    );
+    const companyJob = await stateModels.jobs.findOne({
+      id: application.jobId,
+      companyId: req.user.id
+    }).lean();
 
     if (!companyJob) {
       return res.status(403).json({ message: "You cannot update this application" });
@@ -116,7 +111,7 @@ router.put("/applicants/:id", verifyToken, requireRole("company"), async (req, r
 
     application.status = req.body.status || application.status;
     application.updatedAt = new Date().toISOString();
-    await db.write();
+    await application.save();
 
     return res.json({ message: "Application updated", application });
   } catch (error) {
@@ -127,8 +122,7 @@ router.put("/applicants/:id", verifyToken, requireRole("company"), async (req, r
 router.post("/jobs", verifyToken, requireRole("company"), async (req, res) => {
   try {
     const { role, location, experience, salary, description } = req.body;
-    await db.read();
-    const company = db.data.companies.find((item) => item.id === req.user.id);
+    const company = await stateModels.companies.findOne({ id: req.user.id }).lean();
     if (!company) {
       return res.status(404).json({ message: "Company not found" });
     }
@@ -148,8 +142,7 @@ router.post("/jobs", verifyToken, requireRole("company"), async (req, res) => {
       skills: []
     };
 
-    db.data.jobs.push(job);
-    await db.write();
+    await stateModels.jobs.create(job);
     return res.status(201).json({ message: "Job posted successfully", job });
   } catch (error) {
     return res.status(500).json({ message: "Failed to post job", error: error.message });

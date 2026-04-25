@@ -1,5 +1,5 @@
 import { Router } from "express";
-import db from "../db/database.js";
+import { stateModels } from "../models/stateModels.js";
 
 const router = Router();
 
@@ -62,8 +62,7 @@ router.post("/ask", async (req, res) => {
     const { message, userName } = req.body;
     const reply = getReply(message);
 
-    await db.read();
-    db.data.chatLogs.push({
+    await stateModels.chatLogs.create({
       id: `chat-${Date.now()}`,
       role: "user",
       message,
@@ -71,7 +70,6 @@ router.post("/ask", async (req, res) => {
       userName: userName || null,
       createdAt: new Date().toISOString()
     });
-    await db.write();
 
     return res.json({ reply });
   } catch (error) {

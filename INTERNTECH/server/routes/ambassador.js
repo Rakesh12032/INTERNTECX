@@ -1,14 +1,13 @@
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
-import db from "../db/database.js";
+import { stateModels } from "../models/stateModels.js";
 import { requireRole, verifyToken } from "../middleware/auth.js";
 
 const router = Router();
 
 router.get("/me", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    await db.read();
-    const application = db.data.ambassadors.find((item) => item.studentId === req.user.id);
+    const application = await stateModels.ambassadors.findOne({ studentId: req.user.id }).lean();
     return res.json(application || null);
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch ambassador status", error: error.message });
@@ -18,14 +17,12 @@ router.get("/me", verifyToken, requireRole("student"), async (req, res) => {
 router.post("/apply", verifyToken, requireRole("student"), async (req, res) => {
   try {
     const { instagram, linkedin, reason, monthlyReferrals } = req.body;
-    await db.read();
-
-    const existing = db.data.ambassadors.find((item) => item.studentId === req.user.id);
+    const existing = await stateModels.ambassadors.findOne({ studentId: req.user.id }).lean();
     if (existing) {
       return res.status(409).json({ message: "Ambassador application already exists" });
     }
 
-    const user = db.data.users.find((item) => item.id === req.user.id);
+    const user = await stateModels.users.findOne({ id: req.user.id }).lean();
     const application = {
       id: uuidv4(),
       studentId: req.user.id,
@@ -41,8 +38,7 @@ router.post("/apply", verifyToken, requireRole("student"), async (req, res) => {
       createdAt: new Date().toISOString()
     };
 
-    db.data.ambassadors.push(application);
-    await db.write();
+    await stateModels.ambassadors.create(application);
     return res.status(201).json({ message: "Ambassador application submitted", application });
   } catch (error) {
     return res.status(500).json({ message: "Failed to apply as ambassador", error: error.message });
@@ -51,11 +47,11 @@ router.post("/apply", verifyToken, requireRole("student"), async (req, res) => {
 
 router.get("/leaderboard", async (_req, res) => {
   try {
-    await db.read();
-    const leaderboard = db.data.ambassadors
-      .filter((item) => item.status === "approved")
-      .sort((a, b) => (b.referralCount || 0) - (a.referralCount || 0))
-      .slice(0, 10);
+    const leaderboard = await stateModels.ambassadors
+      .find({ status: "approved" })
+      .sort({ referralCount: -1 })
+      .limit(10)
+      .lean();
     return res.json(leaderboard);
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch ambassador leaderboard", error: error.message });

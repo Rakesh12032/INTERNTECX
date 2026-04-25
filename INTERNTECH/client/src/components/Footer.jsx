@@ -7,7 +7,13 @@ export default function Footer() {
     <footer className="bg-navy text-slate-200">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
         <div>
-          <h3 className="font-heading text-2xl font-bold text-white">Intern<span className="text-blue">Tech</span></h3>
+          <div className="flex items-center gap-3">
+            <img src="/interntex-logo.png" alt="interntex" className="h-12 w-auto rounded-xl bg-white p-1" />
+            <div>
+              <h3 className="font-heading text-2xl font-bold lowercase text-white">interntex</h3>
+              <p className="text-[11px] uppercase tracking-[0.26em] text-slate-400">Learn. Intern. Succeed.</p>
+            </div>
+          </div>
           <p className="mt-3 text-sm leading-6 text-slate-400">Learn. Intern. Succeed. Built for ambitious students who want skills, internships, certificates, and careers.</p>
           <div className="mt-4 flex gap-3">
             {[Linkedin, Instagram, Twitter, Github].map((Icon, index) => (

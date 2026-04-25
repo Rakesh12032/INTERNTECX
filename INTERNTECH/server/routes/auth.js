@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { body, validationResult } from "express-validator";
 import { v4 as uuidv4 } from "uuid";
 import db from "../db/database.js";
+import { stateModels } from "../models/stateModels.js";
 import { verifyToken } from "../middleware/auth.js";
 import { sendOTPEmail, sendWelcomeEmail } from "../utils/emailService.js";
 import { generateReferralCode, generateUserId } from "../utils/generators.js";
@@ -38,7 +39,8 @@ function createToken(user) {
 }
 
 function sanitizeUser(user) {
-  const { password, resetToken, resetTokenExpiry, ...safeUser } = user;
+  const userObj = user.toObject ? user.toObject() : user;
+  const { password, resetToken, resetTokenExpiry, _id, __v, ...safeUser } = userObj;
   return {
     ...safeUser,
     name: safeUser.name || safeUser.companyName || safeUser.institutionName || "InternTech User"
@@ -53,30 +55,15 @@ router.post("/register", registerValidators, async (req, res) => {
       return res.status(400).json({ message: "Validation failed", errors: errors.array() });
     }
 
-    await db.read();
-    const {
-      name,
-      email,
-      phone,
-      password,
-      college,
-      degree,
-      branch,
-      year,
-      city,
-      state,
-      referralCode
-    } = req.body;
-
     const normalizedEmail = email.toLowerCase().trim();
-    const existingUser = db.data.users.find((user) => user.email === normalizedEmail);
+    const existingUser = await stateModels.users.findOne({ email: normalizedEmail }).lean();
 
     if (existingUser) {
       return res.status(409).json({ message: "Email already registered" });
     }
 
     const referredByUser = referralCode
-      ? db.data.users.find((user) => user.referralCode === referralCode.trim())
+      ? await stateModels.users.findOne({ referralCode: referralCode.trim() }).lean()
       : null;
 
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -102,8 +89,7 @@ router.post("/register", registerValidators, async (req, res) => {
       createdAt: new Date().toISOString()
     };
 
-    db.data.users.push(newUser);
-    await db.write();
+    await stateModels.users.create(newUser);
 
     const otp = generateOTP();
     await saveOTP(normalizedEmail, otp);
@@ -124,8 +110,7 @@ router.post("/verify-otp", async (req, res) => {
       return res.status(400).json({ message: "Email and OTP are required" });
     }
 
-    await db.read();
-    const user = db.data.users.find((item) => item.email === normalizedEmail);
+    const user = await stateModels.users.findOne({ email: normalizedEmail });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -138,13 +123,13 @@ router.post("/verify-otp", async (req, res) => {
     user.status = "active";
 
     if (user.referredBy) {
-      const referrer = db.data.users.find((item) => item.id === user.referredBy);
-      if (referrer) {
-        referrer.referralCount = (referrer.referralCount || 0) + 1;
-      }
+      await stateModels.users.updateOne(
+        { id: user.referredBy },
+        { $inc: { referralCount: 1 } }
+      );
     }
 
-    await db.write();
+    await user.save();
     await deleteOTP(normalizedEmail);
     await sendWelcomeEmail(user.email, user.name);
 
@@ -160,8 +145,7 @@ router.post("/login", async (req, res) => {
     const { email, password } = req.body;
     const normalizedEmail = email?.toLowerCase().trim();
 
-    await db.read();
-    const user = db.data.users.find((item) => item.email === normalizedEmail);
+    const user = await stateModels.users.findOne({ email: normalizedEmail }).lean();
 
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
@@ -192,8 +176,7 @@ router.post("/resend-otp", async (req, res) => {
       return res.status(400).json({ message: "Email is required" });
     }
 
-    await db.read();
-    const user = db.data.users.find((item) => item.email === normalizedEmail);
+    const user = await stateModels.users.findOne({ email: normalizedEmail }).lean();
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -218,8 +201,7 @@ router.post("/forgot-password", async (req, res) => {
       return res.status(400).json({ message: "Email is required" });
     }
 
-    await db.read();
-    const user = db.data.users.find((item) => item.email === normalizedEmail);
+    const user = await stateModels.users.findOne({ email: normalizedEmail });
 
     if (!user) {
       return res.json({ message: "If the account exists, a reset link has been prepared" });
@@ -227,7 +209,7 @@ router.post("/forgot-password", async (req, res) => {
 
     user.resetToken = uuidv4();
     user.resetTokenExpiry = Date.now() + 60 * 60 * 1000;
-    await db.write();
+    await user.save();
 
     return res.json({
       message: "Password reset link generated",
@@ -246,19 +228,19 @@ router.post("/reset-password", async (req, res) => {
       return res.status(400).json({ message: "Valid token and password are required" });
     }
 
-    await db.read();
-    const user = db.data.users.find(
-      (item) => item.resetToken === token && Number(item.resetTokenExpiry) > Date.now()
-    );
+    const user = await stateModels.users.findOne({
+      resetToken: token,
+      resetTokenExpiry: { $gt: Date.now() }
+    });
 
     if (!user) {
       return res.status(400).json({ message: "Invalid or expired reset token" });
     }
 
     user.password = await bcrypt.hash(newPassword, 12);
-    delete user.resetToken;
-    delete user.resetTokenExpiry;
-    await db.write();
+    user.resetToken = undefined;
+    user.resetTokenExpiry = undefined;
+    await user.save();
 
     return res.json({ message: "Password updated successfully" });
   } catch (error) {
@@ -268,11 +250,9 @@ router.post("/reset-password", async (req, res) => {
 
 router.get("/me", verifyToken, async (req, res) => {
   try {
-    await db.read();
-    const user =
-      db.data.users.find((item) => item.id === req.user.id) ||
-      db.data.colleges.find((item) => item.id === req.user.id) ||
-      db.data.companies.find((item) => item.id === req.user.id);
+    let user = await stateModels.users.findOne({ id: req.user.id }).lean();
+    if (!user) user = await stateModels.colleges.findOne({ id: req.user.id }).lean();
+    if (!user) user = await stateModels.companies.findOne({ id: req.user.id }).lean();
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -286,8 +266,7 @@ router.get("/me", verifyToken, async (req, res) => {
 
 router.put("/profile", verifyToken, async (req, res) => {
   try {
-    await db.read();
-    const user = db.data.users.find((item) => item.id === req.user.id);
+    const user = await stateModels.users.findOne({ id: req.user.id });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -300,7 +279,7 @@ router.put("/profile", verifyToken, async (req, res) => {
       }
     });
 
-    await db.write();
+    await user.save();
     return res.json({ message: "Profile updated", user: sanitizeUser(user) });
   } catch (error) {
     return res.status(500).json({ message: "Unable to update profile", error: error.message });

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
-import db from "../db/database.js";
+import { stateModels } from "../models/stateModels.js";
 import { requireRole, verifyToken } from "../middleware/auth.js";
 
 const router = Router();
@@ -30,11 +30,16 @@ function buildLast90DaysHeatmap(events, userId) {
 
 router.get("/student", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    await db.read();
-    const enrollments = db.data.enrollments.filter((item) => item.studentId === req.user.id);
-    const attempts = db.data.quizAttempts.filter((item) => item.studentId === req.user.id);
-    const certificates = db.data.certificates.filter((item) => item.studentId === req.user.id);
-    const analyticsEvents = db.data.analyticsEvents || [];
+    const enrollmentsDocs = await stateModels.enrollments.find({ studentId: req.user.id }).lean();
+    const attempts = await stateModels.quizAttempts.find({ studentId: req.user.id }).lean();
+    const certificates = await stateModels.certificates.find({ studentId: req.user.id }).lean();
+    const analyticsEvents = await stateModels.analyticsEvents.find({ userId: req.user.id }).lean();
+
+    const coursesDocs = await stateModels.courses.find({
+      id: { $in: enrollmentsDocs.map((e) => e.courseId) }
+    }).lean();
+    const courseMap = new Map(coursesDocs.map((c) => [c.id, c]));
+    const enrollments = enrollmentsDocs;
 
     const totalLessonsCompleted = enrollments.reduce(
       (sum, item) => sum + (item.completedLessons?.length || 0),
@@ -52,7 +57,7 @@ router.get("/student", verifyToken, requireRole("student"), async (req, res) => 
       longestStreak: Math.max(3, Math.min(14, totalLessonsCompleted + 2)),
       activityHeatmap: buildLast90DaysHeatmap(analyticsEvents, req.user.id),
       courseProgress: enrollments.map((item) => {
-        const course = db.data.courses.find((courseEntry) => courseEntry.id === item.courseId);
+        const course = courseMap.get(item.courseId);
         return {
           courseName: course?.title || "Course",
           progress: item.progress || 0
@@ -71,7 +76,7 @@ router.get("/student", verifyToken, requireRole("student"), async (req, res) => 
         { skill: "Cloud", score: 40 }
       ],
       timeDistribution: enrollments.map((item) => {
-        const course = db.data.courses.find((courseEntry) => courseEntry.id === item.courseId);
+        const course = courseMap.get(item.courseId);
         return {
           name: course?.title || "Course",
           hours: Math.max(1, Math.round((item.completedLessons?.length || 0) * 0.4))
@@ -90,15 +95,12 @@ router.get("/student", verifyToken, requireRole("student"), async (req, res) => 
 
 router.post("/log-activity", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    await db.read();
-    db.data.analyticsEvents ||= [];
-    db.data.analyticsEvents.push({
+    await stateModels.analyticsEvents.create({
       id: uuidv4(),
       userId: req.user.id,
       type: req.body.type,
       createdAt: new Date().toISOString()
     });
-    await db.write();
     return res.json({ message: "Activity logged" });
   } catch (error) {
     return res.status(500).json({ message: "Failed to log activity", error: error.message });

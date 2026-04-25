@@ -1,20 +1,19 @@
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
-import db from "../db/database.js";
+import { stateModels } from "../models/stateModels.js";
 import { requireRole, verifyToken } from "../middleware/auth.js";
 
 const router = Router();
 
 router.get("/my", verifyToken, requireRole("student"), async (req, res) => {
   try {
-    await db.read();
-    const user = db.data.users.find((item) => item.id === req.user.id);
+    const user = await stateModels.users.findOne({ id: req.user.id }).lean();
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const referralList = db.data.referralTransactions.filter((item) => item.referrerId === req.user.id);
+    const referralList = await stateModels.referralTransactions.find({ referrerId: req.user.id }).lean();
 
     return res.json({
       referralCode: user.referralCode,
@@ -31,14 +30,13 @@ router.get("/my", verifyToken, requireRole("student"), async (req, res) => {
 router.post("/process-payment", async (req, res) => {
   try {
     const { newStudentId, referralCode, paymentConfirmed = true } = req.body;
-    await db.read();
 
     if (!paymentConfirmed) {
       return res.status(400).json({ message: "Payment not confirmed" });
     }
 
-    const newStudent = db.data.users.find((item) => item.id === newStudentId);
-    const referrer = db.data.users.find((item) => item.referralCode === referralCode);
+    const newStudent = await stateModels.users.findOne({ id: newStudentId }).lean();
+    const referrer = await stateModels.users.findOne({ referralCode: referralCode });
 
     if (!newStudent || !referrer) {
       return res.status(404).json({ message: "Student or referrer not found" });
@@ -48,9 +46,11 @@ router.post("/process-payment", async (req, res) => {
       return res.status(400).json({ message: "Self-referral is not allowed" });
     }
 
-    const existing = db.data.referralTransactions.find(
-      (item) => item.referrerId === referrer.id && item.referredStudentId === newStudent.id && item.status === "completed"
-    );
+    const existing = await stateModels.referralTransactions.findOne({
+      referrerId: referrer.id,
+      referredStudentId: newStudent.id,
+      status: "completed"
+    }).lean();
 
     if (existing) {
       return res.status(409).json({ message: "Referral reward already processed" });
@@ -59,8 +59,9 @@ router.post("/process-payment", async (req, res) => {
     referrer.walletBalance = (referrer.walletBalance || 0) + 199;
     referrer.totalEarned = (referrer.totalEarned || 0) + 199;
     referrer.referralCount = (referrer.referralCount || 0) + 1;
+    await referrer.save();
 
-    db.data.walletHistory.push({
+    await stateModels.walletHistory.create({
       id: uuidv4(),
       userId: referrer.id,
       type: "credit",
@@ -69,7 +70,7 @@ router.post("/process-payment", async (req, res) => {
       timestamp: new Date().toISOString()
     });
 
-    db.data.referralTransactions.push({
+    await stateModels.referralTransactions.create({
       id: uuidv4(),
       referrerId: referrer.id,
       referredStudentId: newStudent.id,
@@ -78,8 +79,6 @@ router.post("/process-payment", async (req, res) => {
       status: "completed",
       timestamp: new Date().toISOString()
     });
-
-    await db.write();
     return res.json({ message: "Referral reward processed successfully" });
   } catch (error) {
     return res.status(500).json({ message: "Failed to process referral reward", error: error.message });

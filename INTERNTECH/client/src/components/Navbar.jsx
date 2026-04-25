@@ -28,13 +28,10 @@ export default function Navbar() {
   return (
     <header className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? "border-b border-slate-200/10 bg-navy/90 backdrop-blur-xl" : "bg-transparent"}`}>
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="rounded-2xl bg-blue px-3 py-2 font-heading text-lg font-bold text-white shadow-lg shadow-blue/30">IT</div>
+        <Link to="/" className="flex items-center gap-3">
+          <img src="/interntex-logo.png" alt="interntex" className="h-11 w-auto rounded-xl bg-white p-1 shadow-lg shadow-blue/20" />
           <div>
-            <p className="font-heading text-xl font-bold text-white">
-              <span>Intern</span>
-              <span className="text-blue">Tech</span>
-            </p>
+            <p className="font-heading text-2xl font-bold lowercase text-white">interntex</p>
             <p className="text-[11px] uppercase tracking-[0.26em] text-slate-300">Learn. Intern. Succeed.</p>
           </div>
         </Link>
