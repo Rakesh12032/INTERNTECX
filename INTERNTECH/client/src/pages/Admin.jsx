@@ -189,7 +189,7 @@ export default function Admin() {
     };
 
     try {
-      const doc = generateCertificatePDF(certPayload);
+      const doc = await generateCertificatePDF(certPayload);
       doc.save(`${mockCertId}.pdf`);
       toast.success("Certificate generated & downloaded!");
     } catch (pdfError) {

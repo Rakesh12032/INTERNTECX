@@ -117,9 +117,9 @@ export default function CourseLearning() {
     }
   };
 
-  const downloadCertificate = () => {
+  const downloadCertificate = async () => {
     if (!certificate) return;
-    const doc = generateCertificatePDF(certificate);
+    const doc = await generateCertificatePDF(certificate);
     doc.save(`${certificate.certId}.pdf`);
   };
 

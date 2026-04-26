@@ -157,31 +157,94 @@ export default function Home() {
               <p className="ml-2 text-sm font-bold text-white">Active Learners</p>
             </div>
 
-            <div className="animate-float certificate-shell mx-auto max-w-md rounded-[34px] p-[2px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-transform duration-500 hover:scale-105">
-              <div className="relative overflow-hidden rounded-[32px] bg-white/95 p-8 text-slate-900 backdrop-blur-2xl">
-                <div className="absolute inset-0 certificate-ornament opacity-30" />
-                <div className="absolute right-5 top-5 rounded-full border border-gold/40 bg-gold/10 p-2">
-                  <ShieldCheck className="h-6 w-6 text-gold" />
-                </div>
-                <div className="absolute -right-6 top-20 rotate-45 rounded-full bg-navy px-8 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-gold shadow-md">
-                  Verified
-                </div>
-                <div className="absolute bottom-6 right-6 flex h-20 w-20 items-center justify-center rounded-full border-[3px] border-double border-gold/70 bg-gold/10 font-heading text-[10px] font-bold uppercase tracking-widest text-gold">
-                  Seal
-                </div>
-                <div className="flex items-center justify-center gap-3">
-                  <img src="/interntex-logo.png" alt="interntex" className="h-10 w-auto drop-shadow-sm" />
-                  <p className="text-center font-heading text-2xl font-bold lowercase text-navy">interntex</p>
-                </div>
-                <div className="mx-auto mt-4 h-px w-52 bg-gradient-to-r from-transparent via-gold to-transparent" />
-                <p className="mt-5 text-center font-certificate text-3xl font-extrabold text-navy">Certificate of Completion</p>
-                <p className="mt-6 text-center text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Awarded To</p>
-                <p className="mt-2 text-center font-certificate text-[2.5rem] font-bold leading-tight text-gold drop-shadow-md">Rakesh Kumar</p>
-                <p className="mt-4 text-center text-sm font-medium text-slate-600">For successfully mastering Full Stack Web Development</p>
-                <div className="mx-auto mt-6 h-px w-64 bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
-                <div className="mt-8 flex items-center justify-between text-xs font-bold text-slate-400">
-                  <span>ID: INT-2026-2210</span>
-                  <span className="text-gold">100% Verified</span>
+            <div className="animate-float mx-auto max-w-lg rounded-[20px] p-[3px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-transform duration-500 hover:scale-105 bg-gradient-to-br from-[#AC873A] via-[#FFDF8A] to-[#AC873A]">
+              <div className="relative overflow-hidden rounded-[17px] bg-[#070F2B] p-2">
+                <div className="relative overflow-hidden rounded-[12px] bg-[#FDFAF0] p-6 text-[#070F2B] shadow-inner">
+                  <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none select-none">
+                    <span className="font-serif text-7xl font-bold italic -rotate-12 whitespace-nowrap text-[#826E3C]">INTERNTEX</span>
+                  </div>
+
+                  {/* Decorative Corners */}
+                  <div className="absolute top-3 left-3 w-8 h-8 border-t-2 border-l-2 border-[#AC873A]"></div>
+                  <div className="absolute top-3 right-3 w-8 h-8 border-t-2 border-r-2 border-[#AC873A]"></div>
+                  <div className="absolute bottom-3 left-3 w-8 h-8 border-b-2 border-l-2 border-[#AC873A]"></div>
+                  <div className="absolute bottom-3 right-3 w-8 h-8 border-b-2 border-r-2 border-[#AC873A]"></div>
+
+                  {/* Header */}
+                  <div className="relative z-10 flex flex-col items-center">
+                    <div className="flex items-center gap-3">
+                      <img src="/interntex-logo.png" alt="interntex" className="h-10 w-auto drop-shadow-md" />
+                      <p className="font-serif text-2xl font-bold uppercase tracking-wider text-[#070F2B]">INTERNTEX</p>
+                    </div>
+                    <p className="mt-1 text-center text-[8px] uppercase tracking-widest text-[#827864] font-medium">
+                      An Initiative Towards Skill Development
+                    </p>
+                    
+                    {/* Diamond Divider */}
+                    <div className="my-4 flex items-center justify-center w-full max-w-[80%] opacity-80">
+                      <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-[#AC873A]"></div>
+                      <div className="mx-2 rotate-45 w-2 h-2 bg-[#AC873A]"></div>
+                      <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-[#AC873A]"></div>
+                    </div>
+
+                    {/* Title */}
+                    <div className="bg-[#070F2B] px-8 py-2 rounded-sm shadow-sm">
+                      <p className="font-serif text-xl font-bold text-[#AC873A] tracking-wider">CERTIFICATE OF EXCELLENCE</p>
+                    </div>
+                    
+                    <p className="mt-4 text-center font-serif text-xs italic text-[#504B41]">This is to certify that</p>
+                    
+                    {/* Student Name */}
+                    <p className="mt-2 text-center font-serif text-3xl font-bold italic text-[#8C5F0F] drop-shadow-sm">John Doe</p>
+                    <div className="w-48 h-[1px] bg-[#AC873A] mt-1 mb-[2px]"></div>
+                    <div className="w-52 h-[1px] bg-[#AC873A] opacity-50 mb-3"></div>
+
+                    {/* Description & Course */}
+                    <p className="text-center text-[10px] text-[#37322D] max-w-[90%] leading-relaxed">
+                      has successfully completed the comprehensive training program and demonstrated remarkable professional competence in
+                    </p>
+                    <p className="mt-2 font-bold text-[#070F2B] text-lg tracking-wide uppercase">Full Stack Web Development</p>
+                    
+                    {/* Footer info & Signatures */}
+                    <div className="w-full mt-6 flex items-end justify-between px-2">
+                      {/* Left Signature */}
+                      <div className="flex flex-col items-center">
+                        <div className="font-serif italic text-xl text-[#070F2B] -mb-1 opacity-80">Rakesh</div>
+                        <div className="w-24 h-[1px] bg-[#070F2B] mb-1"></div>
+                        <p className="text-[8px] font-bold text-[#070F2B]">Er. Rakesh</p>
+                        <p className="text-[7px] text-[#645F55]">CEO & Founder</p>
+                      </div>
+
+                      {/* Golden Seal */}
+                      <div className="relative flex items-center justify-center w-14 h-14 transform translate-y-2">
+                        <div className="absolute inset-0 bg-[#070F2B] rounded-full flex items-center justify-center">
+                          <div className="w-12 h-12 bg-[#AC873A] rounded-full flex items-center justify-center">
+                            <div className="w-[38px] h-[38px] bg-[#070F2B] rounded-full border-[0.5px] border-[#AC873A] flex flex-col items-center justify-center text-center">
+                              <span className="text-[4px] font-bold text-[#AC873A] tracking-widest leading-none mt-1">OFFICIAL</span>
+                              <span className="text-[5px] text-[#AC873A] leading-none my-[1px]">★</span>
+                              <span className="text-[4px] font-bold text-white tracking-widest leading-none">VERIFIED</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="absolute inset-[-2px] rounded-full border-[3px] border-dotted border-[#070F2B]"></div>
+                      </div>
+
+                      {/* Right Signature */}
+                      <div className="flex flex-col items-center">
+                        <div className="font-serif italic text-xl text-[#070F2B] -mb-1 opacity-80">Priti Yadav</div>
+                        <div className="w-24 h-[1px] bg-[#070F2B] mb-1"></div>
+                        <p className="text-[8px] font-bold text-[#070F2B]">Priti Yadav</p>
+                        <p className="text-[7px] text-[#645F55]">Training Head</p>
+                      </div>
+                    </div>
+
+                    {/* Verification Bar */}
+                    <div className="w-full mt-6 bg-[#070F2B] rounded-md px-3 py-1.5 flex justify-between items-center text-[8px]">
+                      <div className="text-[#AC873A] font-bold">VERIFY ONLINE</div>
+                      <div className="text-[#C8C8D2] font-mono">verify.interntex.com</div>
+                      <div className="text-[#AC873A] font-bold">ID: INT-2026</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

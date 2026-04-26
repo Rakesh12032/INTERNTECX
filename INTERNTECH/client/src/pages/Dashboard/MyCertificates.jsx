@@ -8,9 +8,9 @@ export default function MyCertificates() {
   const [certificates, setCertificates] = useState([]);
   const [preview, setPreview] = useState(null);
 
-  const downloadCertificate = (certificate) => {
+  const downloadCertificate = async (certificate) => {
     try {
-      const doc = generateCertificatePDF(certificate);
+      const doc = await generateCertificatePDF(certificate);
       doc.save(`${certificate.certId}.pdf`);
     } catch (_error) {
       toast.error("Failed to generate certificate PDF");

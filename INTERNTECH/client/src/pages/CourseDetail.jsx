@@ -122,8 +122,8 @@ export default function CourseDetail() {
             <div className="mt-4 rounded-2xl border border-dashed border-gold/40 bg-white/70 p-6 text-center text-sm text-slate-600 dark:bg-slate-950/40 dark:text-slate-300">
               Complete the course and pass the final quiz to unlock your premium Interntex certificate.
               <button 
-                onClick={() => {
-                  const doc = generateCertificatePDF({
+                onClick={async () => {
+                  const doc = await generateCertificatePDF({
                     studentName: "Your Name Here",
                     courseName: course.title,
                     duration: course.duration,
