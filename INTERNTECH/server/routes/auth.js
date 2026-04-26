@@ -55,6 +55,8 @@ router.post("/register", registerValidators, async (req, res) => {
       return res.status(400).json({ message: "Validation failed", errors: errors.array() });
     }
 
+    const { name, email, phone, password, college, degree, branch, year, city, state, referralCode } = req.body;
+
     const normalizedEmail = email.toLowerCase().trim();
     const existingUser = await stateModels.users.findOne({ email: normalizedEmail }).lean();
 

@@ -1,4 +1,4 @@
-import db from "../db/database.js";
+import { stateModels } from "../models/stateModels.js";
 
 const OTP_EXPIRY_MS = 10 * 60 * 1000;
 
@@ -7,30 +7,25 @@ export function generateOTP() {
 }
 
 export async function saveOTP(email, otp) {
-  await db.read();
-  const filtered = db.data.otps.filter((item) => item.email !== email);
-  filtered.push({
+  await stateModels.otps.deleteMany({ email });
+  await stateModels.otps.create({
     id: `${email}-${Date.now()}`,
     email,
     otp,
     expiresAt: Date.now() + OTP_EXPIRY_MS,
     createdAt: new Date().toISOString()
   });
-  db.data.otps = filtered;
-  await db.write();
 }
 
 export async function verifyOTP(email, otp) {
-  await db.read();
-  const entry = db.data.otps.find((item) => item.email === email && item.otp === otp);
+  const entry = await stateModels.otps.findOne({ email, otp }).lean();
 
   if (!entry) {
     return false;
   }
 
   if (entry.expiresAt < Date.now()) {
-    db.data.otps = db.data.otps.filter((item) => item.email !== email);
-    await db.write();
+    await stateModels.otps.deleteMany({ email });
     return false;
   }
 
@@ -38,7 +33,5 @@ export async function verifyOTP(email, otp) {
 }
 
 export async function deleteOTP(email) {
-  await db.read();
-  db.data.otps = db.data.otps.filter((item) => item.email !== email);
-  await db.write();
+  await stateModels.otps.deleteMany({ email });
 }

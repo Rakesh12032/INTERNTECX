@@ -46,7 +46,9 @@ const allowedOrigins = new Set(
     process.env.CLIENT_URL_3,
     "https://interntecx.vercel.app",
     "http://localhost:3000",
-    "http://127.0.0.1:3000"
+    "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://localhost:3002"
   ].filter(Boolean)
 );
 
