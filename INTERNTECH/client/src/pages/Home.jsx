@@ -172,9 +172,8 @@ export default function Home() {
 
                   {/* Header */}
                   <div className="relative z-10 flex flex-col items-center">
-                    <div className="flex items-center gap-3">
-                      <img src="/interntex-logo.png" alt="interntex" className="h-10 w-auto drop-shadow-md" />
-                      <p className="font-serif text-2xl font-bold uppercase tracking-wider text-[#070F2B]">INTERNTEX</p>
+                    <div className="flex flex-col items-center justify-center">
+                      <img src="/interntex-logo.png" alt="interntex" className="h-16 w-auto drop-shadow-md" />
                     </div>
                     <p className="mt-1 text-center text-[8px] uppercase tracking-widest text-[#827864] font-medium">
                       An Initiative Towards Skill Development
@@ -209,8 +208,8 @@ export default function Home() {
                     <div className="w-full mt-6 flex items-end justify-between px-2">
                       {/* Left Signature */}
                       <div className="flex flex-col items-center">
-                        <div className="font-serif italic text-xl text-[#070F2B] -mb-1 opacity-80">Rakesh</div>
-                        <div className="w-24 h-[1px] bg-[#070F2B] mb-1"></div>
+                        <img src="/rakesh_sign.png" alt="Rakesh Signature" className="h-12 w-auto -mb-2 mix-blend-multiply opacity-90" />
+                        <div className="w-24 h-[1px] bg-[#070F2B] mb-1 mt-1"></div>
                         <p className="text-[8px] font-bold text-[#070F2B]">Er. Rakesh</p>
                         <p className="text-[7px] text-[#645F55]">CEO & Founder</p>
                       </div>
@@ -231,9 +230,9 @@ export default function Home() {
 
                       {/* Right Signature */}
                       <div className="flex flex-col items-center">
-                        <div className="font-serif italic text-xl text-[#070F2B] -mb-1 opacity-80">Priti Yadav</div>
-                        <div className="w-24 h-[1px] bg-[#070F2B] mb-1"></div>
-                        <p className="text-[8px] font-bold text-[#070F2B]">Priti Yadav</p>
+                        <img src="/priti_sign.png" alt="Priti Signature" className="h-12 w-auto -mb-2 mix-blend-multiply opacity-90" />
+                        <div className="w-24 h-[1px] bg-[#070F2B] mb-1 mt-1"></div>
+                        <p className="text-[8px] font-bold text-[#070F2B]">Priti</p>
                         <p className="text-[7px] text-[#645F55]">Training Head</p>
                       </div>
                     </div>
